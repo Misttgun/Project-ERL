@@ -1,26 +1,31 @@
 package com.maurelsagbo.project_erl.models;
 
+import java.util.ArrayList;
+
 public class FlightPData {
 
     private String mLocationName;
-    private float mLatitude;
-    private float mLongitude;
+    private int id;
+    private ArrayList<WayPoint> wayPoints;
 
-    public FlightPData(float latitude, float longitude, String locationName){
-        this.mLatitude = latitude;
-        this.mLongitude = longitude;
+    public FlightPData(ArrayList<WayPoint> wayPoints, String locationName){
         this.mLocationName = locationName;
+        this.wayPoints = wayPoints;
     }
 
     public String getLocationName() {
         return mLocationName;
     }
 
-    public float getLatitude() {
-        return mLatitude;
+    public ArrayList<WayPoint> getWayPoints() {
+        return wayPoints;
     }
 
-    public float getLongitude() {
-        return mLongitude;
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

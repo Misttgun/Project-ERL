@@ -1,15 +1,9 @@
 package com.maurelsagbo.project_erl.activities;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,9 +15,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -39,45 +30,22 @@ import java.util.ArrayList;
 
 import static dji.midware.data.manager.P3.ServiceManager.getContext;
 
-public class FlightPActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+public class FlightPActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     protected static final String TAG = "FlightPActivity";
-    final int PERMISSION_LOCATION = 111;
 
     private RecyclerView recyclerView;
     private FlightPAdapter adapter;
     private TextView emptyText;
     private GoogleMap mMap;
-    private GoogleApiClient mGoogleApiClient;
 
     // Check if we can exit the application
     private Boolean exit = false;
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if( mGoogleApiClient != null && mGoogleApiClient.isConnected() ) {
-            mGoogleApiClient.disconnect();
-        }
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flight_p);
-
-        // Setting up goolge play services integration
-        mGoogleApiClient = new GoogleApiClient.Builder(this).
-                enableAutoManage(this, this)
-                .addConnectionCallbacks(this)
-                .addApi(LocationServices.API)
-                .build();
 
         // Get the map fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -96,7 +64,7 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Create the adapter if the array list is not empty
         if(!DataService.getInstance().getFlightPlans().isEmpty()){
-            adapter = new FlightPAdapter(DataService.getInstance().getFlightPlans());
+            adapter = new FlightPAdapter(DataService.getInstance().getFlightPlans(), getContext());
             recyclerView.setAdapter(adapter);
             recyclerView.setVisibility(View.VISIBLE);
             emptyText.setVisibility(View.GONE);
@@ -124,27 +92,8 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_LOCATION);
-            Log.v(TAG, "Requesting permissions");
-        } else {
-            Log.v(TAG, "Updating the map from onConnected");
-            updateMap();
-        }
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
+        Log.v(TAG, "Updating map from onMapReady");
+        updateMap();
     }
 
     @Override
@@ -188,14 +137,20 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
 
     private void updateMap(){
         ArrayList<FlightPData> flightPlans = DataService.getInstance().getFlightPlans();
+        double longitude;
+        double latitude;
 
         if(!flightPlans.isEmpty()){
-            LatLng temp = new LatLng(flightPlans.get(0).getLatitude(), flightPlans.get(0).getLongitude());
+            longitude = flightPlans.get(0).getWayPoints().get(0).getLongitude();
+            latitude = flightPlans.get(0).getWayPoints().get(0).getLatitude();
+            LatLng temp = new LatLng(latitude, longitude);
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 6f));
         }
 
         for(FlightPData fp : flightPlans){
-            MarkerOptions marker = new MarkerOptions().position(new LatLng(fp.getLatitude(), fp.getLongitude()));
+            longitude = fp.getWayPoints().get(0).getLongitude();
+            latitude = fp.getWayPoints().get(0).getLatitude();
+            MarkerOptions marker = new MarkerOptions().position(new LatLng(latitude, longitude));
             marker.title(fp.getLocationName());
             mMap.addMarker(marker);
         }

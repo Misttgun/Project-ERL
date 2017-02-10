@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.maurelsagbo.project_erl.activities.FlightPActivity">
+
+    <item android:id="@+id/get_fp"
+        android:title="Récupérer Plan Vol"
+        app:showAsAction="always"
+        android:icon="@android:drawable/stat_sys_download" />
+</menu>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/recycler_fp_location" />
+
+    <TextView
+        android:text="Vous n'avez pas de plan de vol. Veuillez créer ou récupérer un plan de vol."
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/empty_recycler"
+        android:textSize="24sp"
+        android:textStyle="normal|bold"
+        android:textAlignment="viewStart"
+        android:textAllCaps="false"
+        android:padding="15dp" />
+
+</LinearLayout>

@@ -10,7 +10,7 @@ public class FlightPData {
 
     public FlightPData(ArrayList<WayPoint> wayPoints, String locationName){
         this.mLocationName = locationName;
-        this.wayPoints = wayPoints;
+        this.wayPoints = new ArrayList<>(wayPoints);
     }
 
     public String getLocationName() {

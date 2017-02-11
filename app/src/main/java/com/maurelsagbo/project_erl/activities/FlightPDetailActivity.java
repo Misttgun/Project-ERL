@@ -1,5 +1,6 @@
 package com.maurelsagbo.project_erl.activities;
 
+<<<<<<< HEAD
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -30,10 +31,17 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     private GoogleMap gMap;
 
     private int intentID;
+=======
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+
+public class FlightPDetailActivity extends AppCompatActivity {
+>>>>>>> origin/master
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+<<<<<<< HEAD
         setContentView(R.layout.activity_flight_p_detail);
 
         // Get the map fragment
@@ -98,5 +106,8 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
             LatLng temp = new LatLng(latitude, longitude);
             gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 14f));
         }
+=======
+        setContentView(R.layout.activity_flight_pdetail);
+>>>>>>> origin/master
     }
 }

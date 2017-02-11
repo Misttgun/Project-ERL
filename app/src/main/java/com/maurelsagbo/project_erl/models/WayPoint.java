@@ -1,5 +1,6 @@
 package com.maurelsagbo.project_erl.models;
 
+<<<<<<< HEAD
 public class WayPoint {
 
     private int position;
@@ -29,4 +30,11 @@ public class WayPoint {
     public double getAltitude() {
         return altitude;
     }
+=======
+/**
+ * Created by table7 on 10/02/2017.
+ */
+
+public class WayPoint {
+>>>>>>> origin/master
 }

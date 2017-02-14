@@ -5,7 +5,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.maurelsagbo.project_erl.R;
-import com.maurelsagbo.project_erl.models.FlightPData;
+import com.maurelsagbo.project_erl.models.FlightPlan;
 
 public class FlightPViewHolder extends RecyclerView.ViewHolder{
 
@@ -16,7 +16,7 @@ public class FlightPViewHolder extends RecyclerView.ViewHolder{
         locationName = (TextView) itemView.findViewById(R.id.location_name);
     }
 
-    public void updateUI(FlightPData flightPData){
-        locationName.setText(flightPData.getLocationName());
+    public void updateUI(FlightPlan flightPlan){
+        locationName.setText(flightPlan.getLocationName());
     }
 }

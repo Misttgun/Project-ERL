@@ -14,7 +14,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.maurelsagbo.project_erl.R;
-import com.maurelsagbo.project_erl.models.FlightPData;
+import com.maurelsagbo.project_erl.models.FlightPlan;
 import com.maurelsagbo.project_erl.models.WayPoint;
 import com.maurelsagbo.project_erl.services.DataService;
 
@@ -29,7 +29,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
 
     private GoogleMap gMap;
 
-    private int intentID;
+    private long intentID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +37,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         setContentView(R.layout.activity_flight_p_detail);
 
         // Get the map fragment
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_details);
         mapFragment.getMapAsync(this);
 
         // Create the detail flight plan activity toolbar
@@ -51,7 +51,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         // Get the intent from the flight plan activity
         Bundle bundle = getIntent().getExtras();
         if(bundle != null){
-            intentID = bundle.getInt("flightPlanID");
+            intentID = bundle.getLong("flightPlanID");
         }
     }
 
@@ -71,14 +71,14 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         return false;
     }
 
-    public void updateMap(int id){
-        ArrayList<FlightPData> flightPlans = DataService.getInstance().getFlightPlans();
+    public void updateMap(long id){
+        ArrayList<FlightPlan> flightPlans = DataService.getInstance().getFlightPlans();
         ArrayList<WayPoint> waypoints = new ArrayList<>();
 
         double longitude;
         double latitude;
 
-        for (FlightPData fp : flightPlans){
+        for (FlightPlan fp : flightPlans){
             if(fp.getId() == id){
                 waypoints = fp.getWayPoints();
                 break;
@@ -96,7 +96,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
             longitude = waypoints.get(0).getLongitude();
             latitude = waypoints.get(0).getLatitude();
             LatLng temp = new LatLng(latitude, longitude);
-            gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 14f));
+            gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 17f));
         }
     }
 }

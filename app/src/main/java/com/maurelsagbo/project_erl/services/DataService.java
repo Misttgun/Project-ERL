@@ -1,6 +1,6 @@
 package com.maurelsagbo.project_erl.services;
 
-import com.maurelsagbo.project_erl.models.FlightPData;
+import com.maurelsagbo.project_erl.models.FlightPlan;
 import com.maurelsagbo.project_erl.models.WayPoint;
 
 import java.util.ArrayList;
@@ -13,11 +13,11 @@ public class DataService {
         return instance;
     }
 
-    public ArrayList<FlightPData> getFlightPlans(){
+    public ArrayList<FlightPlan> getFlightPlans(){
         // This where we will put the rest request or SQLite querries
-        ArrayList<FlightPData> list = new ArrayList<>();
-        FlightPData roubaix;
-        FlightPData rostand;
+        ArrayList<FlightPlan> list = new ArrayList<>();
+        FlightPlan roubaix;
+        FlightPlan rostand;
 
         ArrayList<WayPoint> waypointRoubaix = new ArrayList<>();
         waypointRoubaix.add(new WayPoint(0, 50.6962695, 3.1955269000000044, 29.080));
@@ -29,18 +29,18 @@ public class DataService {
         waypointRoubaix.add(new WayPoint(6, 50.6953817, 3.19617930000004, 29.080));
 
         ArrayList<WayPoint> waypointRostand = new ArrayList<>();
-        waypointRoubaix.add(new WayPoint(0, 50.6954339, 3.196490600000061, 29.080));
-        waypointRoubaix.add(new WayPoint(1, 50.6954802, 3.1967660999999907, 29.080));
-        waypointRoubaix.add(new WayPoint(2, 50.6955298, 3.1970613999999387, 29.080));
-        waypointRoubaix.add(new WayPoint(3, 50.69558019999999, 3.197362099999964, 29.080));
-        waypointRoubaix.add(new WayPoint(4, 50.6956286, 3.197650299999964, 29.080));
-        waypointRoubaix.add(new WayPoint(5, 50.69567960000001, 3.197954299999992, 29.080));
-        waypointRoubaix.add(new WayPoint(6, 50.6957199, 3.1981991999999764, 29.080));
+        waypointRostand.add(new WayPoint(0, 50.6954339, 3.196490600000061, 29.080));
+        waypointRostand.add(new WayPoint(1, 50.6954802, 3.1967660999999907, 29.080));
+        waypointRostand.add(new WayPoint(2, 50.6955298, 3.1970613999999387, 29.080));
+        waypointRostand.add(new WayPoint(3, 50.69558019999999, 3.197362099999964, 29.080));
+        waypointRostand.add(new WayPoint(4, 50.6956286, 3.197650299999964, 29.080));
+        waypointRostand.add(new WayPoint(5, 50.69567960000001, 3.197954299999992, 29.080));
+        waypointRostand.add(new WayPoint(6, 50.6957199, 3.1981991999999764, 29.080));
 
-        roubaix = new FlightPData(waypointRoubaix,"Roubaix");
+        roubaix = new FlightPlan(waypointRoubaix,"Roubaix");
         roubaix.setId(1);
 
-        rostand = new FlightPData(waypointRostand,"Rostand");
+        rostand = new FlightPlan(waypointRostand,"Rostand");
         rostand.setId(2);
 
         list.add(roubaix);

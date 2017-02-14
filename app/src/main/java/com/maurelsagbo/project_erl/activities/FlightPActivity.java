@@ -23,7 +23,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.maurelsagbo.project_erl.R;
 import com.maurelsagbo.project_erl.adapters.FlightPAdapter;
-import com.maurelsagbo.project_erl.models.FlightPData;
+import com.maurelsagbo.project_erl.models.FlightPlan;
 import com.maurelsagbo.project_erl.services.DataService;
 
 import java.util.ArrayList;
@@ -64,7 +64,7 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Create the adapter if the array list is not empty
         if(!DataService.getInstance().getFlightPlans().isEmpty()){
-            adapter = new FlightPAdapter(DataService.getInstance().getFlightPlans(), getContext());
+            adapter = new FlightPAdapter(DataService.getInstance().getFlightPlans(), this);
             recyclerView.setAdapter(adapter);
             recyclerView.setVisibility(View.VISIBLE);
             emptyText.setVisibility(View.GONE);
@@ -136,7 +136,7 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void updateMap(){
-        ArrayList<FlightPData> flightPlans = DataService.getInstance().getFlightPlans();
+        ArrayList<FlightPlan> flightPlans = DataService.getInstance().getFlightPlans();
         double longitude;
         double latitude;
 
@@ -144,10 +144,10 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
             longitude = flightPlans.get(0).getWayPoints().get(0).getLongitude();
             latitude = flightPlans.get(0).getWayPoints().get(0).getLatitude();
             LatLng temp = new LatLng(latitude, longitude);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 6f));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 8f));
         }
 
-        for(FlightPData fp : flightPlans){
+        for(FlightPlan fp : flightPlans){
             longitude = fp.getWayPoints().get(0).getLongitude();
             latitude = fp.getWayPoints().get(0).getLatitude();
             MarkerOptions marker = new MarkerOptions().position(new LatLng(latitude, longitude));

@@ -3,6 +3,7 @@ package com.maurelsagbo.project_erl.models;
 public class WayPoint {
 
     private int position;
+
     private double latitude;
     private double longitude;
     private double altitude;
@@ -12,6 +13,10 @@ public class WayPoint {
         this.latitude = latitude;
         this.longitude = longitude;
         this.altitude = altitude;
+    }
+
+    public WayPoint(){
+
     }
 
     public int getPosition() {
@@ -28,5 +33,21 @@ public class WayPoint {
 
     public double getAltitude() {
         return altitude;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setAltitude(double altitude) {
+        this.altitude = altitude;
     }
 }

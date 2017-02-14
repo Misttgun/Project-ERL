@@ -10,30 +10,30 @@ import android.view.ViewGroup;
 import com.maurelsagbo.project_erl.R;
 import com.maurelsagbo.project_erl.activities.FlightPDetailActivity;
 import com.maurelsagbo.project_erl.holders.FlightPViewHolder;
-import com.maurelsagbo.project_erl.models.FlightPData;
+import com.maurelsagbo.project_erl.models.FlightPlan;
 
 import java.util.ArrayList;
 
 public class FlightPAdapter extends RecyclerView.Adapter<FlightPViewHolder> {
 
-    private ArrayList<FlightPData> mFlightPlans;
+    private ArrayList<FlightPlan> mFlightPlans;
     private Context context;
 
-    public FlightPAdapter(ArrayList<FlightPData> flightPlans, Context context){
+    public FlightPAdapter(ArrayList<FlightPlan> flightPlans, Context context){
         this.mFlightPlans = flightPlans;
         this.context = context;
     }
 
     @Override
     public void onBindViewHolder(FlightPViewHolder holder, int position) {
-        final FlightPData flightPData = mFlightPlans.get(position);
-        holder.updateUI(flightPData);
+        final FlightPlan flightPlan = mFlightPlans.get(position);
+        holder.updateUI(flightPlan);
 
         holder.itemView.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(context, FlightPDetailActivity.class);
-                intent.putExtra("flightPlanID", flightPData.getId());
+                intent.putExtra("flightPlanID", flightPlan.getId());
                 context.startActivity(intent);
             }
         });

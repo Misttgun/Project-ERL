@@ -17,14 +17,14 @@ public class WayPointORM {
 
     private static final String TAG = "WayPointORM";
 
-    private static final String TABLE_NAME = "Waypoint";
+    private static final String TABLE_NAME = "waypoint";
 
     private static final String COMMA_SEP = ", ";
 
-    private static final String COLUMN_ID_TYPE = "INTEGER PRIMARY KEY AUTOINCREMENT";
+    private static final String COLUMN_ID_TYPE = "INTEGER PRIMARY KEY";
     private static final String COLUMN_ID = "id";
 
-    private static final String COLUMN_FLIGHTPLAN_ID_TYPE = "FOREIGN KEY";
+    private static final String COLUMN_FLIGHTPLAN_ID_TYPE = "INTEGER";
     private static final String COLUMN_FLIGHTPLAN_ID = "fp_id";
 
     private static final String COLUMN_POSITION_TYPE = "INTEGER";
@@ -42,11 +42,12 @@ public class WayPointORM {
     public static final String SQL_CREATE_TABLE =
             "CREATE TABLE " + TABLE_NAME + " (" +
                     COLUMN_ID + " " + COLUMN_ID_TYPE + COMMA_SEP +
-                    COLUMN_FLIGHTPLAN_ID_TYPE + "(" + FlightPlanORM.getColumnIdType() + ") " + COLUMN_FLIGHTPLAN_ID + COMMA_SEP +
+                    COLUMN_FLIGHTPLAN_ID + " " + COLUMN_FLIGHTPLAN_ID_TYPE + COMMA_SEP +
                     COLUMN_POSITION + " " + COLUMN_POSITION_TYPE + COMMA_SEP +
                     COLUMN_LATITUDE + " " + COLUMN_LATITUDE_TYPE + COMMA_SEP +
                     COLUMN_LONGITUDE + " " + COLUMN_LONGITUDE_TYPE + COMMA_SEP +
-                    COLUMN_ALTITUDE + " " + COLUMN_ALTITUDE_TYPE + ")";
+                    COLUMN_ALTITUDE + " " + COLUMN_ALTITUDE_TYPE + COMMA_SEP +
+                    "FOREIGN KEY(" + COLUMN_FLIGHTPLAN_ID + ") REFERENCES " + FlightPlanORM.getTableName() + "(" + FlightPlanORM.getColumnId()+ "));";
 
     public static final String SQL_DROP_TABLE =
             "DROP TABLE IF EXISTS " + TABLE_NAME;
@@ -62,7 +63,7 @@ public class WayPointORM {
 
         ContentValues values = wayPointToContentValues(wayPoint, flightPlan);
         long postId = database.insert(WayPointORM.TABLE_NAME, "null", values);
-        Log.i(TAG, "Inserted new Post with ID: " + postId);
+        Log.i(TAG, "Inserted new waypoint with ID: " + postId);
 
         database.close();
     }

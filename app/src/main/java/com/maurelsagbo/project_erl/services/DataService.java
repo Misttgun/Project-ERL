@@ -13,7 +13,7 @@ public class DataService {
         return instance;
     }
 
-    public ArrayList<FlightPlan> getFlightPlans(){
+    public ArrayList<FlightPlan> generateDummyData() {
         // This where we will put the rest request or SQLite querries
         ArrayList<FlightPlan> list = new ArrayList<>();
         FlightPlan roubaix;

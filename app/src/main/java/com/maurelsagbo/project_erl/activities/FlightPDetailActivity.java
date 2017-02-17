@@ -72,7 +72,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     }
 
     public void updateMap(long id){
-        ArrayList<FlightPlan> flightPlans = DataService.getInstance().getFlightPlans();
+        ArrayList<FlightPlan> flightPlans = DataService.getInstance().generateDummyData();
         ArrayList<WayPoint> waypoints = new ArrayList<>();
 
         double longitude;

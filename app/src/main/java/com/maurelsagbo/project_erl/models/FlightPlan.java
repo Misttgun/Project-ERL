@@ -1,19 +1,16 @@
 package com.maurelsagbo.project_erl.models;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 public class FlightPlan {
 
     private long id;
 
-    private String mLocationName;
+    private String locationName;
     private ArrayList<WayPoint> wayPoints;
 
-    private Date date;
-
     public FlightPlan(ArrayList<WayPoint> wayPoints, String locationName){
-        this.mLocationName = locationName;
+        this.locationName = locationName;
         this.wayPoints = new ArrayList<>(wayPoints);
     }
 
@@ -22,15 +19,19 @@ public class FlightPlan {
     }
 
     public String getLocationName() {
-        return mLocationName;
+        return locationName;
     }
 
     public void setLocationName(String name){
-        this.mLocationName = name;
+        this.locationName = name;
     }
 
     public ArrayList<WayPoint> getWayPoints() {
         return wayPoints;
+    }
+
+    public void setWayPoints(ArrayList<WayPoint> wayPoints) {
+        this.wayPoints = wayPoints;
     }
 
     public long getId() {
@@ -39,14 +40,6 @@ public class FlightPlan {
 
     public void setId(long id) {
         this.id = id;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
     }
 
 }

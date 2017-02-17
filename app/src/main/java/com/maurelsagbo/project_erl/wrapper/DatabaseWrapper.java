@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.maurelsagbo.project_erl.mapper.FlightPlanORM;
 import com.maurelsagbo.project_erl.mapper.WayPointORM;
 
 public class DatabaseWrapper extends SQLiteOpenHelper {
@@ -12,7 +13,7 @@ public class DatabaseWrapper extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseWrapper";
 
     private static final String DATABASE_NAME = "ERL.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public DatabaseWrapper(Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -27,7 +28,7 @@ public class DatabaseWrapper extends SQLiteOpenHelper {
 
         // Creating the database for the first time
         db.execSQL(WayPointORM.SQL_CREATE_TABLE);
-        db.close();
+        db.execSQL(FlightPlanORM.SQL_CREATE_TABLE);
     }
 
     /**
@@ -39,6 +40,7 @@ public class DatabaseWrapper extends SQLiteOpenHelper {
 
         // Upgrading database
         db.execSQL(WayPointORM.SQL_DROP_TABLE);
+        db.execSQL(FlightPlanORM.SQL_DROP_TABLE);
         onCreate(db);
     }
 }

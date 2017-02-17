@@ -23,7 +23,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.maurelsagbo.project_erl.R;
 import com.maurelsagbo.project_erl.adapters.FlightPAdapter;
+import com.maurelsagbo.project_erl.mapper.FlightPlanORM;
+import com.maurelsagbo.project_erl.mapper.WayPointORM;
 import com.maurelsagbo.project_erl.models.FlightPlan;
+import com.maurelsagbo.project_erl.models.WayPoint;
 import com.maurelsagbo.project_erl.services.DataService;
 
 import java.util.ArrayList;
@@ -63,8 +66,8 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
         recyclerView.setHasFixedSize(true);
 
         // Create the adapter if the array list is not empty
-        if(!DataService.getInstance().getFlightPlans().isEmpty()){
-            adapter = new FlightPAdapter(DataService.getInstance().getFlightPlans(), this);
+        if(!DataService.getInstance().generateDummyData().isEmpty()){
+            adapter = new FlightPAdapter(DataService.getInstance().generateDummyData(), this);
             recyclerView.setAdapter(adapter);
             recyclerView.setVisibility(View.VISIBLE);
             emptyText.setVisibility(View.GONE);
@@ -136,7 +139,7 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void updateMap(){
-        ArrayList<FlightPlan> flightPlans = DataService.getInstance().getFlightPlans();
+        ArrayList<FlightPlan> flightPlans = (ArrayList<FlightPlan>)FlightPlanORM.getFlightPlans(this);
         double longitude;
         double latitude;
 
@@ -153,6 +156,22 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
             MarkerOptions marker = new MarkerOptions().position(new LatLng(latitude, longitude));
             marker.title(fp.getLocationName());
             mMap.addMarker(marker);
+        }
+    }
+
+    private void populateSQLite(){
+        ArrayList<FlightPlan> flightPlans = DataService.getInstance().generateDummyData();
+        ArrayList<WayPoint> wayPoints = new ArrayList<>();
+
+        for(FlightPlan fp : flightPlans){
+            FlightPlanORM.postFlightPlan(this, fp);
+        }
+
+        for(FlightPlan fp : flightPlans){
+            wayPoints = fp.getWayPoints();
+            for(WayPoint wp : wayPoints){
+                WayPointORM.postWaypoint(this, wp, fp);
+            }
         }
     }
 }

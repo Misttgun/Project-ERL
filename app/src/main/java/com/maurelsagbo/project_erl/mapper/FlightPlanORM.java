@@ -7,9 +7,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.maurelsagbo.project_erl.models.FlightPlan;
+import com.maurelsagbo.project_erl.models.WayPoint;
 import com.maurelsagbo.project_erl.wrapper.DatabaseWrapper;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,32 +18,32 @@ public class FlightPlanORM {
 
     private static final String TAG = "FlighPlanORM";
 
-    private static final String TABLE_NAME = "FlightPlan";
+    private static final String TABLE_NAME = "flightplan";
 
     private static final String COMMA_SEP = ", ";
 
-    private static final String COLUMN_ID_TYPE = "INTEGER PRIMARY KEY AUTOINCREMENT";
+    private static final String COLUMN_ID_TYPE = "INTEGER PRIMARY KEY";
     private static final String COLUMN_ID = "id";
 
     private static final String COLUMN_NAME_TYPE = "TEXT";
-    private static final String COLUMN_NAME = "nom du lieu";
-
-    private static final String COLUMN_DATE_TYPE = "TEXT";
-    private static final String COLUMN_DATE = "date de création";
+    private static final String COLUMN_NAME = "nom";
 
     public static final String SQL_CREATE_TABLE =
             "CREATE TABLE " + TABLE_NAME + " (" +
                     COLUMN_ID + " " + COLUMN_ID_TYPE + COMMA_SEP +
-                    COLUMN_NAME + " " + COLUMN_NAME_TYPE + COMMA_SEP +
-                    COLUMN_DATE + " " + COLUMN_DATE_TYPE + COMMA_SEP + ")";
+                    COLUMN_NAME + " " + COLUMN_NAME_TYPE + ");";
 
     public static final String SQL_DROP_TABLE =
             "DROP TABLE IF EXISTS " + TABLE_NAME;
 
     private static SimpleDateFormat dateFormat = new SimpleDateFormat();
 
-    public static String getColumnIdType() {
-        return COLUMN_ID_TYPE;
+    public static String getColumnId() {
+        return COLUMN_ID;
+    }
+
+    public static String getTableName() {
+        return TABLE_NAME;
     }
 
     public static void postFlightPlan(Context context, FlightPlan flightPlan){
@@ -52,7 +52,7 @@ public class FlightPlanORM {
 
         ContentValues values = flightPlanToContentValues(flightPlan);
         long postId = database.insert(FlightPlanORM.TABLE_NAME, "null", values);
-        Log.i(TAG, "Inserted new Post with ID: " + postId);
+        Log.i(TAG, "Inserted new flight plan with ID: " + postId);
 
         database.close();
     }
@@ -70,7 +70,7 @@ public class FlightPlanORM {
         if(cursor.getCount() > 0){
             cursor.moveToFirst();
             while (!cursor.isAfterLast()){
-                flightPlan = cursorToFlightPlan(cursor);
+                flightPlan = cursorToFlightPlan(cursor, context);
                 cursor.moveToNext();
             }
             Log.i(TAG, "Flight plan loaded successfully.");
@@ -93,7 +93,7 @@ public class FlightPlanORM {
         if(cursor.getCount() > 0){
             cursor.moveToFirst();
             while (!cursor.isAfterLast()){
-                FlightPlan flightPlan = cursorToFlightPlan(cursor);
+                FlightPlan flightPlan = cursorToFlightPlan(cursor, context);
                 flightPlanList.add(flightPlan);
                 cursor.moveToNext();
             }
@@ -110,24 +110,17 @@ public class FlightPlanORM {
 
         values.put(FlightPlanORM.COLUMN_ID, flightPlan.getId());
         values.put(FlightPlanORM.COLUMN_NAME, flightPlan.getLocationName());
-        values.put(FlightPlanORM.COLUMN_DATE, dateFormat.format(flightPlan.getDate()));
 
         return values;
     }
 
-    private static FlightPlan cursorToFlightPlan(Cursor cursor){
+    private static FlightPlan cursorToFlightPlan(Cursor cursor, Context context){
         FlightPlan flightPlan = new FlightPlan();
 
         flightPlan.setId(cursor.getLong(cursor.getColumnIndex(COLUMN_ID)));
         flightPlan.setLocationName(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)));
 
-        String date = cursor.getString(cursor.getColumnIndex(COLUMN_DATE));
-        try {
-            flightPlan.setDate(dateFormat.parse(date));
-        } catch (ParseException ex) {
-            Log.e(TAG, "Failed to parse date " + date + " for flight plan " + flightPlan.getId());
-            flightPlan.setDate(null);
-        }
+        flightPlan.setWayPoints(((ArrayList<WayPoint>) WayPointORM.getWayPoints(context, flightPlan)));
 
         return flightPlan;
     }

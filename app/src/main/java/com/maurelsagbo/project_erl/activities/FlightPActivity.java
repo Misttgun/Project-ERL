@@ -1,5 +1,6 @@
 package com.maurelsagbo.project_erl.activities;
 
+import android.content.ContentResolver;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -15,19 +16,27 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.maurelsagbo.project_erl.R;
 import com.maurelsagbo.project_erl.adapters.FlightPAdapter;
 import com.maurelsagbo.project_erl.mapper.FlightPlanORM;
-import com.maurelsagbo.project_erl.mapper.WayPointORM;
 import com.maurelsagbo.project_erl.models.FlightPlan;
-import com.maurelsagbo.project_erl.models.WayPoint;
 import com.maurelsagbo.project_erl.services.DataService;
+import com.maurelsagbo.project_erl.utilities.MySingleton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -45,10 +54,16 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
     // Check if we can exit the application
     private Boolean exit = false;
 
+    private Gson gson;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flight_p);
+
+        // Creation du Gson Builder
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gson = gsonBuilder.create();
 
         // Get the map fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -160,18 +175,30 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void populateSQLite(){
-        ArrayList<FlightPlan> flightPlans = DataService.getInstance().generateDummyData();
-        ArrayList<WayPoint> wayPoints = new ArrayList<>();
-
-        for(FlightPlan fp : flightPlans){
-            FlightPlanORM.postFlightPlan(this, fp);
-        }
-
-        for(FlightPlan fp : flightPlans){
-            wayPoints = fp.getWayPoints();
-            for(WayPoint wp : wayPoints){
-                WayPointORM.postWaypoint(this, wp, fp);
+        JsonArrayRequest requestFP = new JsonArrayRequest("http://vps361908.ovh.net/elittoral/api/flightplans/",
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        ContentResolver cr = getContentResolver();
+                        try {
+                            int size = response.length();
+                            for (int i = 0; i < size; i++) {
+                                JSONObject json = response.getJSONObject(i);
+                                FlightPlan fp = gson.fromJson(json.toString(), FlightPlan.class);
+                                FlightPlanORM.postFlightPlan(getContext(), fp);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.v(TAG, "Erro on geting the flightplans form server");
             }
-        }
+        });
+
+        MySingleton.getInstance(this).getRequestQueue().add(requestFP);
+
     }
 }

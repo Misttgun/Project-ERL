@@ -39,6 +39,9 @@ public class WayPointORM {
     private static final String COLUMN_ALTITUDE_TYPE = "REAL";
     private static final String COLUMN_ALTITUDE = "altitude";
 
+    private static final String COLUMN_ROTATION_TYPE = "REAL";
+    private static final String COLUMN_REOTATION = "rotation";
+
     public static final String SQL_CREATE_TABLE =
             "CREATE TABLE " + TABLE_NAME + " (" +
                     COLUMN_ID + " " + COLUMN_ID_TYPE + COMMA_SEP +
@@ -47,6 +50,7 @@ public class WayPointORM {
                     COLUMN_LATITUDE + " " + COLUMN_LATITUDE_TYPE + COMMA_SEP +
                     COLUMN_LONGITUDE + " " + COLUMN_LONGITUDE_TYPE + COMMA_SEP +
                     COLUMN_ALTITUDE + " " + COLUMN_ALTITUDE_TYPE + COMMA_SEP +
+                    COLUMN_REOTATION + " " + COLUMN_ROTATION_TYPE + COMMA_SEP +
                     "FOREIGN KEY(" + COLUMN_FLIGHTPLAN_ID + ") REFERENCES " + FlightPlanORM.getTableName() + "(" + FlightPlanORM.getColumnId()+ "));";
 
     public static final String SQL_DROP_TABLE =
@@ -112,6 +116,7 @@ public class WayPointORM {
         values.put(WayPointORM.COLUMN_LATITUDE, wayPoint.getLatitude());
         values.put(WayPointORM.COLUMN_LONGITUDE, wayPoint.getLongitude());
         values.put(WayPointORM.COLUMN_FLIGHTPLAN_ID, flightPlan.getId());
+        values.put(WayPointORM.COLUMN_REOTATION, wayPoint.getRotation());
 
         return values;
     }
@@ -127,6 +132,7 @@ public class WayPointORM {
         wayPoint.setAltitude(cursor.getDouble(cursor.getColumnIndex(COLUMN_ALTITUDE)));
         wayPoint.setLatitude(cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE)));
         wayPoint.setLongitude(cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE)));
+        wayPoint.setRotation(cursor.getDouble(cursor.getColumnIndex(COLUMN_REOTATION)));
 
         return wayPoint;
     }

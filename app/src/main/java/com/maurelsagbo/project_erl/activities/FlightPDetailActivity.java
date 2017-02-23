@@ -14,9 +14,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.maurelsagbo.project_erl.R;
+import com.maurelsagbo.project_erl.mapper.FlightPlanORM;
 import com.maurelsagbo.project_erl.models.FlightPlan;
 import com.maurelsagbo.project_erl.models.WayPoint;
-import com.maurelsagbo.project_erl.services.DataService;
 
 import java.util.ArrayList;
 
@@ -72,7 +72,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     }
 
     public void updateMap(long id){
-        ArrayList<FlightPlan> flightPlans = DataService.getInstance().generateDummyData();
+        ArrayList<FlightPlan> flightPlans = (ArrayList<FlightPlan>) FlightPlanORM.getFlightPlans(this);
         ArrayList<WayPoint> waypoints = new ArrayList<>();
 
         double longitude;

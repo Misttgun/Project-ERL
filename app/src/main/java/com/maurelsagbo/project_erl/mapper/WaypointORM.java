@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.maurelsagbo.project_erl.models.FlightPlan;
 import com.maurelsagbo.project_erl.models.WayPoint;
 import com.maurelsagbo.project_erl.wrapper.DatabaseWrapper;
 
@@ -61,11 +60,11 @@ public class WayPointORM {
      * @param context
      * @param wayPoint
      */
-    public static void postWaypoint(Context context, WayPoint wayPoint, FlightPlan flightPlan){
+    public static void postWaypoint(Context context, WayPoint wayPoint, long id){
         DatabaseWrapper databaseWrapper = new DatabaseWrapper(context);
         SQLiteDatabase database = databaseWrapper.getWritableDatabase();
 
-        ContentValues values = wayPointToContentValues(wayPoint, flightPlan);
+        ContentValues values = wayPointToContentValues(wayPoint, id);
         long postId = database.insert(WayPointORM.TABLE_NAME, "null", values);
         Log.i(TAG, "Inserted new waypoint with ID: " + postId);
 
@@ -75,14 +74,14 @@ public class WayPointORM {
     /**
      * Method that get the waypoints from the database
      * @param context
-     * @param flightPlan
+     * @param id
      * @return
      */
-    public static List<WayPoint> getWayPoints(Context context, FlightPlan flightPlan){
+    public static List<WayPoint> getWayPoints(Context context, long id){
         DatabaseWrapper databaseWrapper = new DatabaseWrapper(context);
         SQLiteDatabase database = databaseWrapper.getWritableDatabase();
 
-        Cursor cursor = database.rawQuery("SELECT * FROM " + WayPointORM.TABLE_NAME + " WHERE fp_id = " + flightPlan.getId(), null);
+        Cursor cursor = database.rawQuery("SELECT * FROM " + WayPointORM.TABLE_NAME + " WHERE fp_id = " + id, null);
 
         Log.i(TAG, "Loaded " + cursor.getCount() + " waypoints...");
         List<WayPoint> wayPointList = new ArrayList<>();
@@ -105,17 +104,17 @@ public class WayPointORM {
     /**
      * Convert a WayPoint in ContentValues before inserting in the database
      * @param wayPoint
-     * @param flightPlan
+     * @param id
      * @return
      */
-    private static ContentValues wayPointToContentValues(WayPoint wayPoint, FlightPlan flightPlan){
+    private static ContentValues wayPointToContentValues(WayPoint wayPoint, long id){
         ContentValues values = new ContentValues();
 
         values.put(WayPointORM.COLUMN_POSITION, wayPoint.getPosition());
         values.put(WayPointORM.COLUMN_ALTITUDE, wayPoint.getAltitude());
         values.put(WayPointORM.COLUMN_LATITUDE, wayPoint.getLatitude());
         values.put(WayPointORM.COLUMN_LONGITUDE, wayPoint.getLongitude());
-        values.put(WayPointORM.COLUMN_FLIGHTPLAN_ID, flightPlan.getId());
+        values.put(WayPointORM.COLUMN_FLIGHTPLAN_ID, id);
         values.put(WayPointORM.COLUMN_REOTATION, wayPoint.getRotation());
 
         return values;

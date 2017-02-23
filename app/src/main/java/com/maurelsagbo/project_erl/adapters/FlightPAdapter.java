@@ -12,14 +12,14 @@ import com.maurelsagbo.project_erl.activities.FlightPDetailActivity;
 import com.maurelsagbo.project_erl.holders.FlightPViewHolder;
 import com.maurelsagbo.project_erl.models.FlightPlan;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class FlightPAdapter extends RecyclerView.Adapter<FlightPViewHolder> {
 
-    private ArrayList<FlightPlan> mFlightPlans;
+    private List<FlightPlan> mFlightPlans;
     private Context context;
 
-    public FlightPAdapter(ArrayList<FlightPlan> flightPlans, Context context){
+    public FlightPAdapter(List<FlightPlan> flightPlans, Context context){
         this.mFlightPlans = flightPlans;
         this.context = context;
     }

@@ -3,6 +3,7 @@ package com.maurelsagbo.project_erl.mapper;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
@@ -10,7 +11,6 @@ import com.maurelsagbo.project_erl.models.FlightPlan;
 import com.maurelsagbo.project_erl.models.WayPoint;
 import com.maurelsagbo.project_erl.wrapper.DatabaseWrapper;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +25,7 @@ public class FlightPlanORM {
     private static final String COLUMN_ID_TYPE = "INTEGER PRIMARY KEY";
     private static final String COLUMN_ID = "id";
 
-    private static final String COLUMN_NAME_TYPE = "TEXT";
+    private static final String COLUMN_NAME_TYPE = "TEXT UNIQUE";
     private static final String COLUMN_NAME = "nom";
 
     public static final String SQL_CREATE_TABLE =
@@ -36,8 +36,6 @@ public class FlightPlanORM {
     public static final String SQL_DROP_TABLE =
             "DROP TABLE IF EXISTS " + TABLE_NAME;
 
-    private static SimpleDateFormat dateFormat = new SimpleDateFormat();
-
     public static String getColumnId() {
         return COLUMN_ID;
     }
@@ -46,15 +44,28 @@ public class FlightPlanORM {
         return TABLE_NAME;
     }
 
-    public static void postFlightPlan(Context context, FlightPlan flightPlan){
+    public static boolean postFlightPlan(Context context, FlightPlan flightPlan){
         DatabaseWrapper databaseWrapper = new DatabaseWrapper(context);
         SQLiteDatabase database = databaseWrapper.getWritableDatabase();
 
         ContentValues values = flightPlanToContentValues(flightPlan);
-        long postId = database.insert(FlightPlanORM.TABLE_NAME, "null", values);
-        Log.i(TAG, "Inserted new flight plan with ID: " + postId);
+
+        long postId = -1;
+
+        try {
+            postId = database.insertOrThrow(FlightPlanORM.TABLE_NAME, "null", values);
+            Log.i(TAG, "Inserted new flight plan with ID: " + postId);
+        } catch (SQLiteConstraintException e){
+            Log.e(TAG, "Failed to insert flight plan");
+        }
 
         database.close();
+
+        if(postId > 0){
+            return true;
+        }
+
+        return false;
     }
 
     public static FlightPlan getFlightPlanId(Context context, int id){
@@ -108,7 +119,6 @@ public class FlightPlanORM {
     private static ContentValues flightPlanToContentValues(FlightPlan flightPlan){
         ContentValues values = new ContentValues();
 
-        values.put(FlightPlanORM.COLUMN_ID, flightPlan.getId());
         values.put(FlightPlanORM.COLUMN_NAME, flightPlan.getLocationName());
 
         return values;
@@ -120,7 +130,7 @@ public class FlightPlanORM {
         flightPlan.setId(cursor.getLong(cursor.getColumnIndex(COLUMN_ID)));
         flightPlan.setLocationName(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)));
 
-        flightPlan.setWayPoints(((ArrayList<WayPoint>) WayPointORM.getWayPoints(context, flightPlan)));
+        flightPlan.setWayPoints(((ArrayList<WayPoint>) WayPointORM.getWayPoints(context, flightPlan.getId())));
 
         return flightPlan;
     }

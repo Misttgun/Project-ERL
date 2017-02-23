@@ -13,7 +13,7 @@ public class DatabaseWrapper extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseWrapper";
 
     private static final String DATABASE_NAME = "ERL.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 1;
 
     public DatabaseWrapper(Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -39,6 +39,16 @@ public class DatabaseWrapper extends SQLiteOpenHelper {
         Log.i(TAG, "Upgrading database ["+DATABASE_NAME+" v." + oldVersion+"] to ["+DATABASE_NAME+" v." + newVersion+"]...");
 
         // Upgrading database
+        db.execSQL(WayPointORM.SQL_DROP_TABLE);
+        db.execSQL(FlightPlanORM.SQL_DROP_TABLE);
+        onCreate(db);
+    }
+
+    @Override
+    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        Log.i(TAG, "Downgrading database ["+DATABASE_NAME+" v." + oldVersion+"] to ["+DATABASE_NAME+" v." + newVersion+"]...");
+
+        // Downgrading database
         db.execSQL(WayPointORM.SQL_DROP_TABLE);
         db.execSQL(FlightPlanORM.SQL_DROP_TABLE);
         onCreate(db);

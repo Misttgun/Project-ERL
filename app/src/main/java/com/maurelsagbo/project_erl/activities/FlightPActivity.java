@@ -1,6 +1,6 @@
 package com.maurelsagbo.project_erl.activities;
 
-import android.content.ContentResolver;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -16,9 +16,11 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -30,15 +32,18 @@ import com.google.gson.GsonBuilder;
 import com.maurelsagbo.project_erl.R;
 import com.maurelsagbo.project_erl.adapters.FlightPAdapter;
 import com.maurelsagbo.project_erl.mapper.FlightPlanORM;
+import com.maurelsagbo.project_erl.mapper.WayPointORM;
 import com.maurelsagbo.project_erl.models.FlightPlan;
-import com.maurelsagbo.project_erl.services.DataService;
+import com.maurelsagbo.project_erl.models.WayPoint;
+import com.maurelsagbo.project_erl.utilities.DataCallback;
 import com.maurelsagbo.project_erl.utilities.MySingleton;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static dji.midware.data.manager.P3.ServiceManager.getContext;
 
@@ -81,8 +86,8 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
         recyclerView.setHasFixedSize(true);
 
         // Create the adapter if the array list is not empty
-        if(!DataService.getInstance().generateDummyData().isEmpty()){
-            adapter = new FlightPAdapter(DataService.getInstance().generateDummyData(), this);
+        if(!FlightPlanORM.getFlightPlans(this).isEmpty()){
+            adapter = new FlightPAdapter(FlightPlanORM.getFlightPlans(this), this);
             recyclerView.setAdapter(adapter);
             recyclerView.setVisibility(View.VISIBLE);
             emptyText.setVisibility(View.GONE);
@@ -144,7 +149,9 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.get_fp:
-                // User chose the "Créer" action, create a new flight plan
+                // Get the fight plans from server and then update the map
+                populateSQLite(this);
+                updateMap();
                 return true;
 
             default:
@@ -172,33 +179,79 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
             marker.title(fp.getLocationName());
             mMap.addMarker(marker);
         }
+
+        // Update the adapter
+        if(!FlightPlanORM.getFlightPlans(this).isEmpty()){
+            adapter = new FlightPAdapter(FlightPlanORM.getFlightPlans(this), this);
+            recyclerView.setAdapter(adapter);
+            recyclerView.setVisibility(View.VISIBLE);
+            emptyText.setVisibility(View.GONE);
+        } else {
+            recyclerView.setVisibility(View.GONE);
+            emptyText.setVisibility(View.VISIBLE);
+        }
     }
 
-    private void populateSQLite(){
-        JsonArrayRequest requestFP = new JsonArrayRequest("http://vps361908.ovh.net/elittoral/api/flightplans/",
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        ContentResolver cr = getContentResolver();
-                        try {
-                            int size = response.length();
-                            for (int i = 0; i < size; i++) {
-                                JSONObject json = response.getJSONObject(i);
-                                FlightPlan fp = gson.fromJson(json.toString(), FlightPlan.class);
-                                FlightPlanORM.postFlightPlan(getContext(), fp);
+    private void downloadFPById(final long id, final Context context){
+        JsonObjectRequest requestWP;
+
+             requestWP = new JsonObjectRequest(Request.Method.GET, "http://vps361908.ovh.net/elittoral/api/flightplans/" + id, null,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                String wayPointJson = response.getJSONArray("waypoints").toString();
+                                Log.i(TAG, wayPointJson);
+                                List<WayPoint> wayPoints = Arrays.asList(gson.fromJson(wayPointJson, WayPoint[].class));
+                                for(WayPoint wp : wayPoints){
+                                    WayPointORM.postWaypoint(context, wp, id);
+                                }
+                            } catch (JSONException e){
+                                Log.e(TAG, "Failed to parse JSON to Waypoint list");
+                                e.printStackTrace();
                             }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+
                         }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            });
+
+        MySingleton.getInstance(this).getRequestQueue().add(requestWP);
+
+    }
+
+    private void downloadFlightPlan(final Context context, final DataCallback callback){
+        StringRequest requestFP = new StringRequest(Request.Method.GET,"http://vps361908.ovh.net/elittoral/api/flightplans/",
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        callback.onSuccess(response);
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.v(TAG, "Erro on geting the flightplans form server");
+                Log.e(TAG, error.toString());
             }
         });
 
         MySingleton.getInstance(this).getRequestQueue().add(requestFP);
+    }
 
+    private void populateSQLite(final Context context){
+        downloadFlightPlan(context, new DataCallback() {
+            @Override
+            public void onSuccess(String response) {
+                List<FlightPlan> flightPlans = Arrays.asList(gson.fromJson(response, FlightPlan[].class));
+                Log.i(TAG, response);
+                for(FlightPlan fp : flightPlans){
+                    boolean unique = FlightPlanORM.postFlightPlan(context, fp);
+                    if(unique)
+                        downloadFPById(fp.getId(), context);
+                }
+            }
+        });
     }
 }

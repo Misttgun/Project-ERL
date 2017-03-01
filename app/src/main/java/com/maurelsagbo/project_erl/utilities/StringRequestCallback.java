@@ -1,5 +1,5 @@
 package com.maurelsagbo.project_erl.utilities;
 
-public interface DataCallback {
+public interface StringRequestCallback {
     void onSuccess(String response);
 }

@@ -21,12 +21,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.maurelsagbo.project_erl.R;
@@ -35,8 +29,8 @@ import com.maurelsagbo.project_erl.mapper.FlightPlanORM;
 import com.maurelsagbo.project_erl.mapper.WayPointORM;
 import com.maurelsagbo.project_erl.models.FlightPlan;
 import com.maurelsagbo.project_erl.models.WayPoint;
-import com.maurelsagbo.project_erl.utilities.DataCallback;
 import com.maurelsagbo.project_erl.utilities.MySingleton;
+import com.maurelsagbo.project_erl.utilities.StringRequestCallback;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,14 +41,13 @@ import java.util.List;
 
 import static dji.midware.data.manager.P3.ServiceManager.getContext;
 
-public class FlightPActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class FlightPActivity extends AppCompatActivity {
 
     protected static final String TAG = "FlightPActivity";
 
     private RecyclerView recyclerView;
     private FlightPAdapter adapter;
     private TextView emptyText;
-    private GoogleMap mMap;
 
     // Check if we can exit the application
     private Boolean exit = false;
@@ -70,10 +63,6 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
         GsonBuilder gsonBuilder = new GsonBuilder();
         gson = gsonBuilder.create();
 
-        // Get the map fragment
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
         // Create the flight plan activity toolbar
         Toolbar homeToolbar = (Toolbar) findViewById(R.id.home_toolbar);
         setSupportActionBar(homeToolbar);
@@ -85,10 +74,14 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
         recyclerView = (RecyclerView) findViewById(R.id.recycler_fp_location);
         recyclerView.setHasFixedSize(true);
 
+        List<FlightPlan> flightPlans = FlightPlanORM.getFlightPlans(this);
+
         // Create the adapter if the array list is not empty
-        if(!FlightPlanORM.getFlightPlans(this).isEmpty()){
-            adapter = new FlightPAdapter(FlightPlanORM.getFlightPlans(this), this);
-            recyclerView.setAdapter(adapter);
+        adapter = new FlightPAdapter(new ArrayList<FlightPlan>(), this);
+        recyclerView.setAdapter(adapter);
+
+        if(!flightPlans.isEmpty()){
+            adapter.updateItems(flightPlans);
             recyclerView.setVisibility(View.VISIBLE);
             emptyText.setVisibility(View.GONE);
         } else {
@@ -110,13 +103,6 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
                         .setAction("Action", null).show();
             }
         });
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        Log.v(TAG, "Updating map from onMapReady");
-        updateMap();
     }
 
     @Override
@@ -151,7 +137,8 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
             case R.id.get_fp:
                 // Get the fight plans from server and then update the map
                 populateSQLite(this);
-                updateMap();
+
+                //updateFlightPlanList();
                 return true;
 
             default:
@@ -160,30 +147,12 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
-    private void updateMap(){
-        ArrayList<FlightPlan> flightPlans = (ArrayList<FlightPlan>)FlightPlanORM.getFlightPlans(this);
-        double longitude;
-        double latitude;
-
-        if(!flightPlans.isEmpty()){
-            longitude = flightPlans.get(0).getWayPoints().get(0).getLongitude();
-            latitude = flightPlans.get(0).getWayPoints().get(0).getLatitude();
-            LatLng temp = new LatLng(latitude, longitude);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 8f));
-        }
-
-        for(FlightPlan fp : flightPlans){
-            longitude = fp.getWayPoints().get(0).getLongitude();
-            latitude = fp.getWayPoints().get(0).getLatitude();
-            MarkerOptions marker = new MarkerOptions().position(new LatLng(latitude, longitude));
-            marker.title(fp.getLocationName());
-            mMap.addMarker(marker);
-        }
+    private void updateFlightPlanList(){
+        List<FlightPlan> flightPlans = FlightPlanORM.getFlightPlans(this);
 
         // Update the adapter
-        if(!FlightPlanORM.getFlightPlans(this).isEmpty()){
-            adapter = new FlightPAdapter(FlightPlanORM.getFlightPlans(this), this);
-            recyclerView.setAdapter(adapter);
+        if(!flightPlans.isEmpty()){
+            adapter.updateItems(flightPlans);
             recyclerView.setVisibility(View.VISIBLE);
             emptyText.setVisibility(View.GONE);
         } else {
@@ -192,10 +161,8 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
-    private void downloadFPById(final long id, final Context context){
-        JsonObjectRequest requestWP;
-
-             requestWP = new JsonObjectRequest(Request.Method.GET, "http://vps361908.ovh.net/elittoral/api/flightplans/" + id, null,
+    private void downloadFPById(final Context context, final long id){
+        JsonObjectRequest requestWP = new JsonObjectRequest(Request.Method.GET, "http://vps361908.ovh.net/elittoral/api/flightplans/" + id, null,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
@@ -210,7 +177,6 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
                                 Log.e(TAG, "Failed to parse JSON to Waypoint list");
                                 e.printStackTrace();
                             }
-
                         }
                     }, new Response.ErrorListener() {
                 @Override
@@ -223,7 +189,7 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
 
     }
 
-    private void downloadFlightPlan(final Context context, final DataCallback callback){
+    private void downloadFlightPlan(final StringRequestCallback callback){
         StringRequest requestFP = new StringRequest(Request.Method.GET,"http://vps361908.ovh.net/elittoral/api/flightplans/",
                 new Response.Listener<String>() {
                     @Override
@@ -241,16 +207,19 @@ public class FlightPActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void populateSQLite(final Context context){
-        downloadFlightPlan(context, new DataCallback() {
+        downloadFlightPlan(new StringRequestCallback() {
             @Override
             public void onSuccess(String response) {
-                List<FlightPlan> flightPlans = Arrays.asList(gson.fromJson(response, FlightPlan[].class));
+                List<FlightPlan> tempFlightPlans = Arrays.asList(gson.fromJson(response, FlightPlan[].class));
                 Log.i(TAG, response);
-                for(FlightPlan fp : flightPlans){
+                for(FlightPlan fp : tempFlightPlans){
                     boolean unique = FlightPlanORM.postFlightPlan(context, fp);
-                    if(unique)
-                        downloadFPById(fp.getId(), context);
+                    if(unique){
+                        downloadFPById(context, fp.getId());
+                    }
                 }
+                Log.i(TAG, "Updating flightplan list from response");
+                updateFlightPlanList();
             }
         });
     }

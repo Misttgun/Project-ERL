@@ -51,4 +51,9 @@ public class FlightPAdapter extends RecyclerView.Adapter<FlightPViewHolder> {
 
         return new FlightPViewHolder(card);
     }
+
+    public void updateItems(List<FlightPlan> flightPlans){
+        mFlightPlans = flightPlans;
+        notifyDataSetChanged();
+    }
 }

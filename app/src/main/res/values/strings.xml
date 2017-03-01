@@ -3,4 +3,6 @@
     <string name="google_api_id">AIzaSyANKNZXivHva-yuFS8jms-3a_Dey44_BdQ</string>
 
     <string name="title_activity_flight_p">Plans de vol</string>
+    <string name="fp_name_hint">Ex: Roubaix</string>
+    <string name="fp_name_prefill"></string>
 </resources>

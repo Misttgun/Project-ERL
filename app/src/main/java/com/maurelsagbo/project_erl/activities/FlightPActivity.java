@@ -1,10 +1,10 @@
 package com.maurelsagbo.project_erl.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -99,8 +99,8 @@ public class FlightPActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent intent = new Intent(FlightPActivity.this, CreateFlightPActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -213,8 +213,8 @@ public class FlightPActivity extends AppCompatActivity {
                 List<FlightPlan> tempFlightPlans = Arrays.asList(gson.fromJson(response, FlightPlan[].class));
                 Log.i(TAG, response);
                 for(FlightPlan fp : tempFlightPlans){
-                    boolean unique = FlightPlanORM.postFlightPlan(context, fp);
-                    if(unique){
+                    long id = FlightPlanORM.postFlightPlan(context, fp);
+                    if(id != -1){
                         downloadFPById(context, fp.getId());
                     }
                 }

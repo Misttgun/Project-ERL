@@ -19,6 +19,7 @@ import com.maurelsagbo.project_erl.models.FlightPlan;
 import com.maurelsagbo.project_erl.models.WayPoint;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class FlightPDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -72,8 +73,8 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     }
 
     public void updateMap(long id){
-        ArrayList<FlightPlan> flightPlans = (ArrayList<FlightPlan>) FlightPlanORM.getFlightPlans(this);
-        ArrayList<WayPoint> waypoints = new ArrayList<>();
+        List<FlightPlan> flightPlans = (ArrayList<FlightPlan>) FlightPlanORM.getFlightPlans(this);
+        List<WayPoint> waypoints = new ArrayList<>();
 
         double longitude;
         double latitude;

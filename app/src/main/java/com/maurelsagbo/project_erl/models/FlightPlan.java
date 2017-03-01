@@ -3,6 +3,7 @@ package com.maurelsagbo.project_erl.models;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class FlightPlan {
 
@@ -13,9 +14,9 @@ public class FlightPlan {
     private String locationName;
 
     @SerializedName("waypoints")
-    private ArrayList<WayPoint> wayPoints;
+    private List<WayPoint> wayPoints;
 
-    public FlightPlan(ArrayList<WayPoint> wayPoints, String locationName){
+    public FlightPlan(List<WayPoint> wayPoints, String locationName){
         this.locationName = locationName;
         this.wayPoints = new ArrayList<>(wayPoints);
     }
@@ -32,11 +33,11 @@ public class FlightPlan {
         this.locationName = name;
     }
 
-    public ArrayList<WayPoint> getWayPoints() {
+    public List<WayPoint> getWayPoints() {
         return wayPoints;
     }
 
-    public void setWayPoints(ArrayList<WayPoint> wayPoints) {
+    public void setWayPoints(List<WayPoint> wayPoints) {
         this.wayPoints = wayPoints;
     }
 

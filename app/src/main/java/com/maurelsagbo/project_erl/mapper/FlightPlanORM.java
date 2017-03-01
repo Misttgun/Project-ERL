@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.maurelsagbo.project_erl.models.FlightPlan;
-import com.maurelsagbo.project_erl.models.WayPoint;
 import com.maurelsagbo.project_erl.wrapper.DatabaseWrapper;
 
 import java.util.ArrayList;
@@ -44,7 +43,7 @@ public class FlightPlanORM {
         return TABLE_NAME;
     }
 
-    public static boolean postFlightPlan(Context context, FlightPlan flightPlan){
+    public static long postFlightPlan(Context context, FlightPlan flightPlan){
         DatabaseWrapper databaseWrapper = new DatabaseWrapper(context);
         SQLiteDatabase database = databaseWrapper.getWritableDatabase();
 
@@ -61,11 +60,7 @@ public class FlightPlanORM {
 
         database.close();
 
-        if(postId > 0){
-            return true;
-        }
-
-        return false;
+        return postId;
     }
 
     public static FlightPlan getFlightPlanId(Context context, int id){
@@ -130,7 +125,7 @@ public class FlightPlanORM {
         flightPlan.setId(cursor.getLong(cursor.getColumnIndex(COLUMN_ID)));
         flightPlan.setLocationName(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)));
 
-        flightPlan.setWayPoints(((ArrayList<WayPoint>) WayPointORM.getWayPoints(context, flightPlan.getId())));
+        flightPlan.setWayPoints((WayPointORM.getWayPoints(context, flightPlan.getId())));
 
         return flightPlan;
     }

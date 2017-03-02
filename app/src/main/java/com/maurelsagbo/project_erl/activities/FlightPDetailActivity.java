@@ -1,10 +1,12 @@
 package com.maurelsagbo.project_erl.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.View;
 import android.widget.Button;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -21,7 +23,7 @@ import com.maurelsagbo.project_erl.models.WayPoint;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FlightPDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class FlightPDetailActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
 
     protected static final String TAG = "FlightPDetailActivity";
 
@@ -36,6 +38,9 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flight_p_detail);
+
+        // Initialization of UI
+        initUI();
 
         // Get the map fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_details);
@@ -72,6 +77,24 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         return false;
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.launch_flight_p_btn:{
+                // Put the LaunchFlightPlanActivity at the top of the backstack
+                Intent intent = new Intent(this, LaunchFlightPActivity.class);
+                startActivity(intent);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Update the map with the flight plan list of waypoints
+     * @param id
+     */
     public void updateMap(long id){
         List<FlightPlan> flightPlans = (ArrayList<FlightPlan>) FlightPlanORM.getFlightPlans(this);
         List<WayPoint> waypoints = new ArrayList<>();
@@ -99,5 +122,18 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
             LatLng temp = new LatLng(latitude, longitude);
             gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 17f));
         }
+    }
+
+    /**
+     * Method that initialize the UI by getting the buttons and setting the on click listeners
+     */
+    private void initUI(){
+        // Get buttons
+        upload_btn = (Button) findViewById(R.id.launch_flight_p_btn);
+        launch_btn = (Button) findViewById(R.id.upload_pictures_btn);
+
+        // Set on click listener
+        upload_btn.setOnClickListener(this);
+        launch_btn.setOnClickListener(this);
     }
 }

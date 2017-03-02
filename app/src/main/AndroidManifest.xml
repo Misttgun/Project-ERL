@@ -26,11 +26,10 @@
         android:glEsVersion="0x00020000"
         android:required="true" />
 
-    <!--Take care of USB Accessory support -->
+    <!-- Take care of USB Accessory support -->
     <uses-feature
         android:name="android.hardware.usb.host"
         android:required="false" />
-
     <uses-feature
         android:name="android.hardware.usb.accessory"
         android:required="true" />
@@ -55,15 +54,17 @@
 
         <!-- DJI SDK -->
         <uses-library android:name="com.android.future.usb.accessory" />
+
         <meta-data
             android:name="com.dji.sdk.API_KEY"
             android:value="a0ce3f29499f5ac54c6cfab3" />
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+
         <activity
             android:name="dji.sdk.sdkmanager.DJIAoaControllerActivity"
-            android:theme="@android:style/Theme.Translucent" >
+            android:theme="@android:style/Theme.Translucent">
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
             </intent-filter>
@@ -72,24 +73,23 @@
                 android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
                 android:resource="@xml/accessory_filter" />
         </activity>
-        <service android:name="dji.sdk.sdkmanager.DJIGlobalService" >
-        </service>
+
+        <service android:name="dji.sdk.sdkmanager.DJIGlobalService"></service>
         <!-- DJI SDK -->
 
         // Asus ROG
-        <!--<meta-data-->
-            <!--android:name="com.google.android.geo.API_KEY"-->
-            <!--android:value="AIzaSyDe0p6FWR7vMQKOXila89UZQV-eb4lEpyQ" />-->
+        <!-- <meta-data -->
+        <!-- android:name="com.google.android.geo.API_KEY" -->
+        <!-- android:value="AIzaSyDe0p6FWR7vMQKOXila89UZQV-eb4lEpyQ" /> -->
 
         // Mac Jean Rostand
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDiKLeF1IqTncCu9BAPdrepg5ThQoj6Jlg" />
-
         // Gros ROG
-        <!--<meta-data-->
-            <!--android:name="com.google.android.geo.API_KEY"-->
-            <!--android:value="AIzaSyBnCSpMUjZvJJufqy_H1QpcfJRAAxWtGHQ" />-->
+        <!-- <meta-data -->
+        <!-- android:name="com.google.android.geo.API_KEY" -->
+        <!-- android:value="AIzaSyBnCSpMUjZvJJufqy_H1QpcfJRAAxWtGHQ" /> -->
 
         <meta-data
             android:name="com.google.android.gms.version"
@@ -99,26 +99,37 @@
             android:name=".activities.FlightPActivity"
             android:label="@string/title_activity_flight_p"
             android:theme="@style/AppTheme" />
-
-        <activity android:name=".activities.FlightPDetailActivity"
+        <activity
+            android:name=".activities.FlightPDetailActivity"
+            android:configChanges="orientation|keyboardHidden"
             android:label="Détail plan de vol"
-            android:theme="@style/AppTheme"
             android:parentActivityName=".activities.FlightPActivity"
             android:screenOrientation="landscape"
-            android:configChanges="orientation|keyboardHidden">
-
-            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".activities.FlightPActivity" />
-
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.FlightPActivity" />
         </activity>
-
-        <activity android:name=".activities.CreateFlightPActivity"
+        <activity
+            android:name=".activities.CreateFlightPActivity"
+            android:configChanges="orientation|keyboardHidden"
             android:label="Création du plan de vol"
-            android:theme="@style/AppTheme"
             android:parentActivityName=".activities.FlightPActivity"
-            android:configChanges="orientation|keyboardHidden">
-
-            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".activities.FlightPActivity" />
-
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.FlightPActivity" />
+        </activity>
+        <activity
+            android:name=".activities.LaunchFlightPActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:label="Lancement plan de vol"
+            android:parentActivityName=".activities.FlightPActivity"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.maurelsagbo.project_erl.activities.FlightPActivity" />
         </activity>
     </application>
 

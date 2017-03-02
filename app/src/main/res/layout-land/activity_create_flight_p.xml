@@ -34,12 +34,11 @@
                             android:layout_width="100dp"
                             android:layout_height="wrap_content"
                             android:text="Add"
-                            android:layout_weight="1"
                             android:background="@android:color/holo_orange_light"
                             android:textColor="@android:color/white"
                             android:textStyle="normal|bold"
                             android:layout_alignParentRight="true"
-                            android:layout_alignParentTop="true"
+                            android:layout_alignParentTop="false"
                             android:layout_margin="10dp" />
 
                         <Button
@@ -47,7 +46,6 @@
                             android:layout_width="100dp"
                             android:layout_height="wrap_content"
                             android:text="Clear"
-                            android:layout_weight="1"
                             android:background="@android:color/holo_orange_light"
                             android:textColor="@android:color/white"
                             android:textStyle="normal|bold"
@@ -62,7 +60,6 @@
                             android:layout_width="100dp"
                             android:layout_height="wrap_content"
                             android:text="Save"
-                            android:layout_weight="1"
                             android:background="@android:color/holo_orange_light"
                             android:textColor="@android:color/white"
                             android:textStyle="normal|bold"

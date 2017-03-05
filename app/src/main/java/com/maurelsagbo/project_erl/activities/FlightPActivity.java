@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +49,7 @@ public class FlightPActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private FlightPAdapter adapter;
     private TextView emptyText;
+    private ProgressBar pb;
 
     // Check if we can exit the application
     private Boolean exit = false;
@@ -69,6 +71,9 @@ public class FlightPActivity extends AppCompatActivity {
 
         // Get error text view in case of an empty recycler view
         emptyText = (TextView) findViewById(R.id.empty_recycler);
+
+        // Get the progress bar
+        pb = (ProgressBar) findViewById(R.id.pb_loading);
 
         // Get the recycler view and set fixed size to true
         recyclerView = (RecyclerView) findViewById(R.id.recycler_fp_location);
@@ -194,6 +199,8 @@ public class FlightPActivity extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        Log.i(TAG, "Affichage de la progress bar");
+                        pb.setVisibility(ProgressBar.VISIBLE);
                         callback.onSuccess(response);
                     }
                 }, new Response.ErrorListener() {
@@ -218,6 +225,8 @@ public class FlightPActivity extends AppCompatActivity {
                         downloadFPById(context, fp.getId());
                     }
                 }
+                Log.i(TAG, "Dissimulation de la progress bar");
+                pb.setVisibility(ProgressBar.INVISIBLE);
                 Log.i(TAG, "Updating flightplan list from response");
                 updateFlightPlanList();
             }

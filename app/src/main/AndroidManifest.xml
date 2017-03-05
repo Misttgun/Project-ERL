@@ -83,13 +83,13 @@
         <!-- android:value="AIzaSyDe0p6FWR7vMQKOXila89UZQV-eb4lEpyQ" /> -->
 
         // Mac Jean Rostand
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDiKLeF1IqTncCu9BAPdrepg5ThQoj6Jlg" />
+        <!--<meta-data-->
+            <!--android:name="com.google.android.geo.API_KEY"-->
+            <!--android:value="AIzaSyDiKLeF1IqTncCu9BAPdrepg5ThQoj6Jlg" />-->
         // Gros ROG
-        <!-- <meta-data -->
-        <!-- android:name="com.google.android.geo.API_KEY" -->
-        <!-- android:value="AIzaSyBnCSpMUjZvJJufqy_H1QpcfJRAAxWtGHQ" /> -->
+         <meta-data
+         android:name="com.google.android.geo.API_KEY"
+         android:value="AIzaSyBnCSpMUjZvJJufqy_H1QpcfJRAAxWtGHQ" />
 
         <meta-data
             android:name="com.google.android.gms.version"
@@ -112,7 +112,7 @@
         </activity>
         <activity
             android:name=".activities.CreateFlightPActivity"
-            android:configChanges="orientation|keyboardHidden"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="Création du plan de vol"
             android:parentActivityName=".activities.FlightPActivity"
             android:theme="@style/AppTheme">

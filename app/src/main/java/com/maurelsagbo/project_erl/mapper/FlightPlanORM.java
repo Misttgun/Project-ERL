@@ -63,11 +63,11 @@ public class FlightPlanORM {
         return postId;
     }
 
-    public static FlightPlan getFlightPlanId(Context context, int id){
+    public static FlightPlan getFlightPlanId(Context context, long id){
         DatabaseWrapper databaseWrapper = new DatabaseWrapper(context);
         SQLiteDatabase database = databaseWrapper.getWritableDatabase();
 
-        Cursor cursor = database.rawQuery("SELECT * FROM " + FlightPlanORM.TABLE_NAME + " WHERE fp_id = " + id, null);
+        Cursor cursor = database.rawQuery("SELECT * FROM " + FlightPlanORM.TABLE_NAME + " WHERE id = " + id, null);
 
         Log.i(TAG, "Loaded " + cursor.getCount() + " flight plan...");
 

@@ -20,15 +20,13 @@ import com.maurelsagbo.project_erl.mapper.FlightPlanORM;
 import com.maurelsagbo.project_erl.models.FlightPlan;
 import com.maurelsagbo.project_erl.models.WayPoint;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class FlightPDetailActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
 
     protected static final String TAG = "FlightPDetailActivity";
 
-    private Button launch_btn;
-    private Button upload_btn;
+    private Button prepare, start, upload, locate;
 
     private GoogleMap gMap;
 
@@ -63,7 +61,10 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        gMap = googleMap;
+        // Initialization of the map
+        if(gMap == null){
+            gMap = googleMap;
+        }
         updateMap(intentID);
     }
 
@@ -80,9 +81,10 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.launch_flight_p_btn:{
+            case R.id.start_flight_p_btn:{
                 // Put the LaunchFlightPlanActivity at the top of the backstack
                 Intent intent = new Intent(this, LaunchFlightPActivity.class);
+                intent.putExtra("flightPlanID", intentID);
                 startActivity(intent);
                 break;
             }
@@ -96,18 +98,11 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
      * @param id
      */
     public void updateMap(long id){
-        List<FlightPlan> flightPlans = (ArrayList<FlightPlan>) FlightPlanORM.getFlightPlans(this);
-        List<WayPoint> waypoints = new ArrayList<>();
+        FlightPlan flightPlan = FlightPlanORM.getFlightPlanId(this, id);
+        List<WayPoint> waypoints = flightPlan.getWayPoints();
 
         double longitude;
         double latitude;
-
-        for (FlightPlan fp : flightPlans){
-            if(fp.getId() == id){
-                waypoints = fp.getWayPoints();
-                break;
-            }
-        }
 
         for (WayPoint wp : waypoints){
             latitude = wp.getLatitude();
@@ -129,11 +124,15 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
      */
     private void initUI(){
         // Get buttons
-        upload_btn = (Button) findViewById(R.id.launch_flight_p_btn);
-        launch_btn = (Button) findViewById(R.id.upload_pictures_btn);
+        prepare = (Button) findViewById(R.id.prepare_flight_p_btn);
+        start = (Button) findViewById(R.id.start_flight_p_btn);
+        upload = (Button) findViewById(R.id.stop_flight_p_btn);
+        locate = (Button) findViewById(R.id.locate_btn);
 
         // Set on click listener
-        upload_btn.setOnClickListener(this);
-        launch_btn.setOnClickListener(this);
+        prepare.setOnClickListener(this);
+        start.setOnClickListener(this);
+        upload.setOnClickListener(this);
+        locate.setOnClickListener(this);
     }
 }

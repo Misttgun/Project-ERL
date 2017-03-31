@@ -1,12 +1,19 @@
 package com.maurelsagbo.project_erl.activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -25,15 +32,19 @@ import com.maurelsagbo.project_erl.models.WayPoint;
 
 import java.util.List;
 
+import dji.common.error.DJIError;
 import dji.common.flightcontroller.DJIFlightControllerCurrentState;
+import dji.common.util.DJICommonCallbacks;
 import dji.sdk.base.DJIBaseProduct;
 import dji.sdk.flightcontroller.DJIFlightController;
 import dji.sdk.flightcontroller.DJIFlightControllerDelegate;
+import dji.sdk.missionmanager.DJIMission;
 import dji.sdk.missionmanager.DJIMissionManager;
+import dji.sdk.missionmanager.DJIWaypoint;
 import dji.sdk.missionmanager.DJIWaypointMission;
 import dji.sdk.products.DJIAircraft;
 
-public class FlightPDetailActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
+public class FlightPDetailActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, DJIMissionManager.MissionProgressStatusCallback, DJICommonCallbacks.DJICompletionCallback {
 
     protected static final String TAG = "FlightPDetailActivity";
 
@@ -41,17 +52,22 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
 
     private GoogleMap gMap;
 
-    private float mSpeed = 10.0f;
+    private float mSpeed = 3f;
+    private float mAltitude = 5f;
 
-    private double droneLocationLat = 50.69, droneLocationLng = 3.19;
+    private double droneLocationLat, droneLocationLng;
     private Marker droneMarker = null;
 
-    private DJIWaypointMission.DJIWaypointMissionFinishedAction mFinishedAction = DJIWaypointMission.DJIWaypointMissionFinishedAction.GoHome;
-    private DJIWaypointMission.DJIWaypointMissionHeadingMode mHeadingMode = DJIWaypointMission.DJIWaypointMissionHeadingMode.UsingWaypointHeading;
+    private DJIWaypointMission.DJIWaypointMissionFinishedAction mFinishedAction = DJIWaypointMission.DJIWaypointMissionFinishedAction.GoFirstWaypoint;
+    private DJIWaypointMission.DJIWaypointMissionHeadingMode mHeadingMode = DJIWaypointMission.DJIWaypointMissionHeadingMode.Auto;
     private DJIWaypointMission mWaypointMission;
     private DJIMissionManager mMissionManager;
 
     private DJIFlightController mFlightController;
+
+    private DJIBaseProduct product;
+
+    private List<WayPoint> waypoints;
 
     private long intentID;
 
@@ -80,11 +96,23 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         if(bundle != null){
             intentID = bundle.getLong("flightPlanID");
         }
+
+        // Receive broadcast
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ERLApplication.FLAG_CONNECTION_CHANGE);
+        registerReceiver(mReceiver, filter);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        initFlightController();
+        initMissionManager();
     }
 
     @Override
@@ -107,14 +135,38 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.get_aircraft:
+                // Check aircraft connection and refresh UI
+                refreshUI();
+
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized. Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.start_flight_p_btn:{
-                break;
-            }
             case R.id.locate_btn: {
                 updateDroneLocation();
                 cameraUpdate();
+                break;
+            }
+            case R.id.prepare_flight_p_btn: {
+                prepareWayPointMission();
+                break;
+            }
+            case R.id.start_flight_p_btn:{
+                startWaypointMission();
+                break;
+            }
+            case R.id.stop_flight_p_btn:{
+                stopWaypointMission();
                 break;
             }
             default:
@@ -128,7 +180,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
      */
     public void updateMap(long id){
         FlightPlan flightPlan = FlightPlanORM.getFlightPlanId(this, id);
-        List<WayPoint> waypoints = flightPlan.getWayPoints();
+        waypoints = flightPlan.getWayPoints();
 
         double longitude;
         double latitude;
@@ -144,7 +196,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
             longitude = waypoints.get(0).getLongitude();
             latitude = waypoints.get(0).getLatitude();
             LatLng temp = new LatLng(latitude, longitude);
-            gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 17f));
+            gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 18f));
         }
     }
 
@@ -159,6 +211,13 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         upload = (Button) findViewById(R.id.upload_pictures_btn);
         locate = (Button) findViewById(R.id.locate_btn);
 
+        // Disable buttons by defaults
+        locate.setEnabled(false);
+        start.setEnabled(false);
+        stop.setEnabled(false);
+        upload.setEnabled(false);
+        prepare.setEnabled(false);
+
         // Set on click listener
         prepare.setOnClickListener(this);
         start.setOnClickListener(this);
@@ -168,28 +227,86 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     }
 
     /**
-     * Method which configure the waypoint mision before take off
+     * Method which take a string a show a toast message on screen
+     * @param string
      */
-    private void configWayPointMission() {
-        if (mWaypointMission != null) {
-            mWaypointMission.finishedAction = mFinishedAction;
-            mWaypointMission.headingMode = mHeadingMode;
-            mWaypointMission.autoFlightSpeed = mSpeed;
-        }
+    private void setResultToToast(final String string){
+        FlightPDetailActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(FlightPDetailActivity.this, string, Toast.LENGTH_LONG).show();
+            }
+        });
     }
+
+    /**
+     * Method which move the camera on the aircraft marker
+     */
+    private void cameraUpdate() {
+        LatLng pos = new LatLng(droneLocationLat, droneLocationLng);
+        float zoomlevel = 18f;
+        CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(pos, zoomlevel);
+        gMap.moveCamera(cu);
+    }
+
+    //##############################################################################################################
+    //################################################# DJI METHODS ################################################
+    //##############################################################################################################
+
+    protected BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            onProductConnectionChange();
+            refreshUI();
+        }
+    };
 
     /**
      * Method which is called everytime the connection status of the aircraft changes
      */
     private void onProductConnectionChange() {
-        initFlightontroller();
+        initFlightController();
+        initMissionManager();
+    }
+
+    /**
+     * Method which initialize the mission manager
+     */
+    private void initMissionManager() {
+        product = ERLApplication.getProductInstance();
+        if (product == null || !product.isConnected()) {
+            mMissionManager = null;
+            return;
+        } else {
+            mMissionManager = product.getMissionManager();
+            mMissionManager.setMissionProgressStatusCallback(this);
+            mMissionManager.setMissionExecutionFinishedCallback(this);
+        }
+
+        mWaypointMission = new DJIWaypointMission();
+    }
+
+    /**
+     * DJIMissionManager Delegate Methods
+     */
+    @Override
+    public void missionProgressStatus(DJIMission.DJIMissionProgressStatus progressStatus) {
+
+    }
+
+    /**
+     * DJIMissionManager Delegate Methods
+     */
+    @Override
+    public void onResult(DJIError error) {
+        setResultToToast("Execution finished: " + (error == null ? "Success!" : error.getDescription()));
     }
 
     /**
      * Method which get and initializes the flight controller
      */
-    private void initFlightontroller() {
-        DJIBaseProduct product = ERLApplication.getProductInstance();
+    private void initFlightController() {
+        product = ERLApplication.getProductInstance();
         if (product != null && product.isConnected()) {
             if (product instanceof DJIAircraft) {
                 mFlightController = ((DJIAircraft) product).getFlightController();
@@ -204,6 +321,82 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
                     updateDroneLocation();
                 }
             });
+        }
+    }
+
+    /**
+     * Method which configure the waypoint mision before take off
+     */
+    private void configWayPointMission() {
+        if (mWaypointMission != null) {
+            mWaypointMission.finishedAction = mFinishedAction;
+            mWaypointMission.headingMode = mHeadingMode;
+            mWaypointMission.autoFlightSpeed = mSpeed;
+
+            for(WayPoint wp : waypoints){
+                DJIWaypoint mWaypoint = new DJIWaypoint(wp.getLatitude(), wp.getLongitude(), mAltitude);
+
+                //Add waypoints to Waypoint arraylist;
+                mWaypointMission.addWaypoint(mWaypoint);
+            }
+        }
+    }
+
+    /**
+     * Method which prepare a waypoint mission
+     */
+    private void prepareWayPointMission(){
+        // Configure the waypoint mission
+        configWayPointMission();
+        if (mMissionManager != null && mWaypointMission != null) {
+            DJIMission.DJIMissionProgressHandler progressHandler = new DJIMission.DJIMissionProgressHandler() {
+                @Override
+                public void onProgress(DJIMission.DJIProgressType type, float progress) {
+                }
+            };
+
+            mMissionManager.prepareMission(mWaypointMission, progressHandler, new DJICommonCallbacks.DJICompletionCallback() {
+                @Override
+                public void onResult(DJIError error) {
+                    setResultToToast(error == null ? "Mission Prepare Successfully" : error.getDescription());
+                }
+            });
+        }
+
+    }
+
+    /**
+     * Method which start a waypoint mission
+     */
+    private void startWaypointMission(){
+        if (mMissionManager != null) {
+            mMissionManager.startMissionExecution(new DJICommonCallbacks.DJICompletionCallback() {
+                @Override
+                public void onResult(DJIError error) {
+                    setResultToToast("Mission Start: " + (error == null ? "Successfully" : error.getDescription()));
+                }
+            });
+
+        } else {
+            setResultToToast("Prepare Mission First!");
+        }
+    }
+
+    /**
+     * Method which stop a waypoint mission
+     */
+    private void stopWaypointMission(){
+        if (mMissionManager != null) {
+            mMissionManager.stopMissionExecution(new DJICommonCallbacks.DJICompletionCallback() {
+                @Override
+                public void onResult(DJIError error) {
+                    setResultToToast("Mission Stop: " + (error == null ? "Successfully" : error.getDescription()));
+                }
+            });
+
+            if (mWaypointMission != null){
+                mWaypointMission.removeAllWaypoints();
+            }
         }
     }
 
@@ -241,13 +434,23 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         });
     }
 
-    /**
-     * Method which move the camera on the aircraft marker
-     */
-    private void cameraUpdate() {
-        LatLng pos = new LatLng(droneLocationLat, droneLocationLng);
-        float zoomlevel = 18.0f;
-        CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(pos, zoomlevel);
-        gMap.moveCamera(cu);
+    private void refreshUI(){
+        product = ERLApplication.getProductInstance();
+        if (product != null && product.isConnected()) {
+            locate.setEnabled(true);
+            start.setEnabled(true);
+            stop.setEnabled(true);
+            prepare.setEnabled(true);
+            Log.v(TAG, "Connection to aircraft: True");
+        } else {
+            locate.setEnabled(false);
+            start.setEnabled(false);
+            stop.setEnabled(false);
+            prepare.setEnabled(false);
+
+            // Show message on screen
+            setResultToToast("The aircraft is not connected.");
+            Log.v(TAG, "Connection to aircraft: False");
+        }
     }
 }

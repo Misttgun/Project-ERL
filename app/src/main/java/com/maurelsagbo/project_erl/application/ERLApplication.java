@@ -6,12 +6,14 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.multidex.MultiDex;
+import android.util.Log;
 import android.widget.Toast;
 
 import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
 import dji.sdk.base.DJIBaseComponent;
 import dji.sdk.base.DJIBaseProduct;
+import dji.sdk.products.DJIAircraft;
 import dji.sdk.sdkmanager.DJISDKManager;
 
 public class ERLApplication extends Application {
@@ -33,6 +35,10 @@ public class ERLApplication extends Application {
             mProduct = DJISDKManager.getInstance().getDJIProduct();
         }
         return mProduct;
+    }
+
+    public static boolean isAircraftConnected(){
+        return getProductInstance() != null && getProductInstance() instanceof DJIAircraft;
     }
 
     @Override
@@ -68,6 +74,7 @@ public class ERLApplication extends Application {
                         Toast.makeText(getApplicationContext(), "Register Success", Toast.LENGTH_LONG).show();
                     }
                 });
+                Log.d(TAG, "Register success");
             } else {
                 Handler handler = new Handler(Looper.getMainLooper());
                 handler.post(new Runnable() {
@@ -77,6 +84,8 @@ public class ERLApplication extends Application {
                         Toast.makeText(getApplicationContext(), "Register sdk fails, check network is available", Toast.LENGTH_LONG).show();
                     }
                 });
+
+                Log.d(TAG, "Register failed");
             }
         }
 

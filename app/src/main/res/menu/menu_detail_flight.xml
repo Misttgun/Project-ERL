@@ -1,4 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.maurelsagbo.project_erl.activities.FlightPDetailActivity">
 
+    <item android:id="@+id/get_aircraft"
+        android:title="Connexion Drône"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_flight_black_24dp" />
 </menu>

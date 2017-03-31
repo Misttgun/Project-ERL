@@ -63,7 +63,7 @@ public class CreateFlightPActivity extends AppCompatActivity implements View.OnC
     public boolean onCreateOptionsMenu(Menu menu) {
         if(menu != null){
             // Inflate the menu; this adds items to the action bar if it is present.
-            getMenuInflater().inflate(R.menu.menu_detail_flight, menu);
+            getMenuInflater().inflate(R.menu.menu_create_flight, menu);
             return true;
         }
         return false;

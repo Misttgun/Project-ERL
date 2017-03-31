@@ -62,8 +62,7 @@
                 android:layout_marginTop="15dp"
                 android:background="@android:color/holo_orange_light"
                 android:text="Upload"
-                android:textSize="18sp"
-                android:visibility="invisible" />
+                android:textSize="18sp" />
 
             <Button
                 android:id="@+id/start_flight_p_btn"

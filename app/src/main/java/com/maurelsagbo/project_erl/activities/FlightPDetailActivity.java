@@ -48,7 +48,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
 
     protected static final String TAG = "FlightPDetailActivity";
 
-    private Button prepare, start, upload, locate, stop;
+    private Button prepare, start, pictures, locate, stop;
 
     private GoogleMap gMap;
 
@@ -63,7 +63,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     private DJIWaypointMission mWaypointMission;
     private DJIMissionManager mMissionManager;
     private DJIWaypoint.DJIWaypointAction photoAction = new DJIWaypoint.DJIWaypointAction(DJIWaypoint.DJIWaypointActionType.StartTakePhoto, 2);
-    private DJIWaypoint.DJIWaypointAction gimbalAction = new DJIWaypoint.DJIWaypointAction(DJIWaypoint.DJIWaypointActionType.GimbalPitch, -90);
+    private DJIWaypoint.DJIWaypointAction gimbalAction = new DJIWaypoint.DJIWaypointAction(DJIWaypoint.DJIWaypointActionType.GimbalPitch, 0);
 
     private DJIFlightController mFlightController;
 
@@ -210,21 +210,21 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         prepare = (Button) findViewById(R.id.prepare_flight_p_btn);
         start = (Button) findViewById(R.id.start_flight_p_btn);
         stop = (Button) findViewById(R.id.stop_flight_p_btn);
-        upload = (Button) findViewById(R.id.upload_pictures_btn);
+        pictures = (Button) findViewById(R.id.get_pictures_btn);
         locate = (Button) findViewById(R.id.locate_btn);
 
         // Disable buttons by defaults
         locate.setEnabled(false);
         start.setEnabled(false);
         stop.setEnabled(false);
-        upload.setEnabled(false);
+        pictures.setEnabled(false);
         prepare.setEnabled(false);
 
         // Set on click listener
         prepare.setOnClickListener(this);
         start.setOnClickListener(this);
         stop.setOnClickListener(this);
-        upload.setOnClickListener(this);
+        pictures.setOnClickListener(this);
         locate.setOnClickListener(this);
     }
 

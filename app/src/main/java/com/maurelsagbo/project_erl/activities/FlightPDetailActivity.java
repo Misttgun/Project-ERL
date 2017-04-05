@@ -62,6 +62,8 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     private DJIWaypointMission.DJIWaypointMissionHeadingMode mHeadingMode = DJIWaypointMission.DJIWaypointMissionHeadingMode.Auto;
     private DJIWaypointMission mWaypointMission;
     private DJIMissionManager mMissionManager;
+    private DJIWaypoint.DJIWaypointAction photoAction = new DJIWaypoint.DJIWaypointAction(DJIWaypoint.DJIWaypointActionType.StartTakePhoto, 2);
+    private DJIWaypoint.DJIWaypointAction gimbalAction = new DJIWaypoint.DJIWaypointAction(DJIWaypoint.DJIWaypointActionType.GimbalPitch, -90);
 
     private DJIFlightController mFlightController;
 
@@ -196,7 +198,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
             longitude = waypoints.get(0).getLongitude();
             latitude = waypoints.get(0).getLatitude();
             LatLng temp = new LatLng(latitude, longitude);
-            gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 18f));
+            gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 20f));
         }
     }
 
@@ -244,7 +246,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
      */
     private void cameraUpdate() {
         LatLng pos = new LatLng(droneLocationLat, droneLocationLng);
-        float zoomlevel = 18f;
+        float zoomlevel = 20f;
         CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(pos, zoomlevel);
         gMap.moveCamera(cu);
     }
@@ -335,6 +337,8 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
 
             for(WayPoint wp : waypoints){
                 DJIWaypoint mWaypoint = new DJIWaypoint(wp.getLatitude(), wp.getLongitude(), mAltitude);
+                mWaypoint.addAction(gimbalAction);
+                mWaypoint.addAction(photoAction);
 
                 //Add waypoints to Waypoint arraylist;
                 mWaypointMission.addWaypoint(mWaypoint);
@@ -420,7 +424,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         //Create MarkerOptions object
         final MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(pos);
-        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.aircraft));
+        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.drone));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

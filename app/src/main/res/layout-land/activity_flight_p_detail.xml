@@ -33,59 +33,59 @@
             <Button
                 android:id="@+id/locate_btn"
                 android:layout_width="100dp"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentTop="true"
                 android:layout_marginRight="15dp"
                 android:layout_marginTop="15dp"
                 android:background="@android:color/holo_orange_light"
                 android:text="Locate"
-                android:textSize="18sp" />
+                android:textSize="14sp" />
 
             <Button
                 android:id="@+id/prepare_flight_p_btn"
                 android:layout_width="100dp"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
+                android:layout_alignStart="@+id/locate_btn"
+                android:layout_below="@+id/locate_btn"
+                android:layout_marginTop="15dp"
                 android:background="@android:color/holo_orange_light"
                 android:text="Prepare"
-                android:textSize="18sp"
-                android:layout_below="@+id/locate_btn"
-                android:layout_alignStart="@+id/locate_btn"
-                android:layout_marginTop="15dp" />
+                android:textSize="14sp" />
 
             <Button
                 android:id="@+id/get_pictures_btn"
                 android:layout_width="100dp"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
                 android:layout_alignStart="@+id/prepare_flight_p_btn"
                 android:layout_below="@+id/prepare_flight_p_btn"
                 android:layout_marginTop="15dp"
                 android:background="@android:color/holo_orange_light"
                 android:text="Pictures"
-                android:textSize="18sp" />
+                android:textSize="14sp" />
 
             <Button
                 android:id="@+id/start_flight_p_btn"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:background="@android:color/holo_orange_light"
-                android:text="Start"
-                android:textSize="18sp"
+                android:layout_width="75dp"
+                android:layout_height="35dp"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"
                 android:layout_marginLeft="15dp"
-                android:layout_marginTop="15dp" />
+                android:layout_marginTop="15dp"
+                android:background="@android:color/holo_orange_light"
+                android:text="Start"
+                android:textSize="14sp" />
 
             <Button
                 android:id="@+id/stop_flight_p_btn"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
+                android:layout_width="75dp"
+                android:layout_height="35dp"
+                android:layout_alignStart="@+id/start_flight_p_btn"
+                android:layout_below="@+id/start_flight_p_btn"
+                android:layout_marginTop="15dp"
                 android:background="@android:color/holo_orange_light"
                 android:text="Stop"
-                android:textSize="18sp"
-                android:layout_below="@+id/start_flight_p_btn"
-                android:layout_alignStart="@+id/start_flight_p_btn"
-                android:layout_marginTop="15dp" />
+                android:textSize="14sp" />
 
 
         </RelativeLayout>

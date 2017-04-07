@@ -7,4 +7,10 @@
         android:title="Récupérer Plan Vol"
         app:showAsAction="always"
         android:icon="@android:drawable/stat_sys_download" />
+
+    <item
+        android:id="@+id/get_pictures"
+        android:icon="@drawable/picture"
+        android:title="Récupérer Images"
+        app:showAsAction="always" />
 </menu>

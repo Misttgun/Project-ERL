@@ -13,6 +13,7 @@ import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
 import dji.sdk.base.DJIBaseComponent;
 import dji.sdk.base.DJIBaseProduct;
+import dji.sdk.camera.DJICamera;
 import dji.sdk.products.DJIAircraft;
 import dji.sdk.sdkmanager.DJISDKManager;
 
@@ -39,6 +40,32 @@ public class ERLApplication extends Application {
 
     public static boolean isAircraftConnected(){
         return getProductInstance() != null && getProductInstance() instanceof DJIAircraft;
+    }
+
+    public static synchronized DJICamera getCameraInstance() {
+
+        if (getProductInstance() == null) return null;
+
+        DJICamera camera = null;
+
+        if (getProductInstance() instanceof DJIAircraft){
+            camera = (getProductInstance()).getCamera();
+        }
+
+        return camera;
+    }
+    public static boolean isProductModuleAvailable() {
+        return (null != ERLApplication.getProductInstance());
+    }
+
+    public static boolean isCameraModuleAvailable() {
+        return isProductModuleAvailable() &&
+                (null != ERLApplication.getProductInstance().getCamera());
+    }
+
+    public static boolean isPlaybackAvailable() {
+        return isCameraModuleAvailable() &&
+                (null != ERLApplication.getProductInstance().getCamera().getPlayback());
     }
 
     @Override

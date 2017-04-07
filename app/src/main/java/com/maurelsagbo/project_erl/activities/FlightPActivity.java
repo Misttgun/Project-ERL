@@ -145,6 +145,10 @@ public class FlightPActivity extends AppCompatActivity {
 
                 //updateFlightPlanList();
                 return true;
+            case R.id.get_pictures:
+                Intent intent = new Intent(FlightPActivity.this, PlaybackActivity.class);
+                startActivity(intent);
+                return true;
 
             default:
                 // If we got here, the user's action was not recognized. Invoke the superclass to handle it.

@@ -53,7 +53,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     private GoogleMap gMap;
 
     private float mSpeed = 3f;
-    private float mAltitude = 5f;
+    private float mAltitude = 12f;
 
     private double droneLocationLat, droneLocationLng;
     private Marker droneMarker = null;
@@ -139,12 +139,6 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.get_aircraft:
-                // Check aircraft connection and refresh UI
-                refreshUI();
-
-                return true;
-
             default:
                 // If we got here, the user's action was not recognized. Invoke the superclass to handle it.
                 return super.onOptionsItemSelected(item);
@@ -212,13 +206,6 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         stop = (Button) findViewById(R.id.stop_flight_p_btn);
         pictures = (Button) findViewById(R.id.get_pictures_btn);
         locate = (Button) findViewById(R.id.locate_btn);
-
-        // Disable buttons by defaults
-        locate.setEnabled(false);
-        start.setEnabled(false);
-        stop.setEnabled(false);
-        pictures.setEnabled(false);
-        prepare.setEnabled(false);
 
         // Set on click listener
         prepare.setOnClickListener(this);

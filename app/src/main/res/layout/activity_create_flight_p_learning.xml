@@ -1,0 +1,38 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:keepScreenOn="true"
+    tools:context=".activities.CreateFlightPLearningActivity">
+
+    <TextureView
+        android:id="@+id/video_previewer_surface"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:id="@+id/add_wp_button"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/holo_orange_light"
+        android:text="Add" />
+
+    <Button
+        android:id="@+id/save_fp_button"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="false"
+        android:layout_below="@+id/add_wp_button"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="16dp"
+        android:background="@android:color/holo_orange_light"
+        android:text="Save" />
+
+</RelativeLayout>

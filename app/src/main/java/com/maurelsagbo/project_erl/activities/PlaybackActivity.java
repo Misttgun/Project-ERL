@@ -1,12 +1,14 @@
 package com.maurelsagbo.project_erl.activities;
 
 import android.app.ProgressDialog;
+import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -16,40 +18,67 @@ import com.maurelsagbo.project_erl.application.ERLApplication;
 
 import java.io.File;
 
-import dji.common.camera.DJICameraSettingsDef;
+import dji.common.camera.SettingsDefinitions;
 import dji.common.error.DJIError;
-import dji.common.util.DJICommonCallbacks;
-import dji.sdk.camera.DJICamera;
-import dji.sdk.camera.DJIPlaybackManager;
+import dji.common.product.Model;
+import dji.common.util.CommonCallbacks;
+import dji.sdk.base.BaseProduct;
+import dji.sdk.camera.Camera;
+import dji.sdk.camera.PlaybackManager;
+import dji.sdk.camera.PlaybackManager.PlaybackState;
+import dji.sdk.camera.VideoFeeder;
+import dji.sdk.codec.DJICodecManager;
 
-public class PlaybackActivity extends AppCompatActivity implements View.OnClickListener {
+
+public class PlaybackActivity extends AppCompatActivity implements TextureView.SurfaceTextureListener, View.OnClickListener {
 
     private static final String TAG = PlaybackActivity.class.getName();
 
-    private Button mPreviousBtn, mNextBtn, mSelectBtn, mSelectAllBtn;
+    protected VideoFeeder.VideoDataCallback mReceivedVideoDataCallBack = null;
+
+    // Codec for video live view
+    protected DJICodecManager mCodecManager = null;
+    protected TextureView mVideoSurface = null;
+
+    private Button mPreviousBtn, mNextBtn, mSelectBtn, mSelectAllBtn, mPlayBackBtn;
     private Button mSingleBtn, mMultipleBtn, mDownloadBtn, mDeleteBtn;
-    private Button mPreviewBtn1, mPreviewBtn2, mPreviewBtn3, mPreviewBtn4, mPreviewBtn5, mPreviewBtn6, mPreviewBtn7, mPreviewBtn8;
+    private Button mPreviewBtn1, mPreviewBtn2, mPreviewBtn3, mPreviewBtn4;
 
     private final int SHOWTOAST = 1;
     private final int SHOW_DOWNLOAD_PROGRESS_DIALOG = 2;
     private final int HIDE_DOWNLOAD_PROGRESS_DIALOG = 3;
 
     private boolean isSinglePreview = true;
-    private DJIPlaybackManager.DJICameraPlaybackState mPlaybackState;
-    private DJICamera mCamera;
+    private PlaybackState mPlaybackState;
+    private Camera mCamera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playback);
 
+        // Initialize the UI
         initUI();
+
+        // The callback for receiving the raw H264 video data for camera live view
+        mReceivedVideoDataCallBack = new VideoFeeder.VideoDataCallback() {
+
+            @Override
+            public void onReceive(byte[] videoBuffer, int size) {
+                if (mCodecManager != null) {
+                    mCodecManager.sendDataToDecoder(videoBuffer, size);
+                }else {
+                    Log.e(TAG, "mCodecManager is null");
+                }
+            }
+        };
     }
 
     @Override
     public void onResume() {
         Log.e(TAG, "onResume");
         super.onResume();
+        initPreviewer();
         initCameraCallBacks();
     }
 
@@ -57,12 +86,14 @@ public class PlaybackActivity extends AppCompatActivity implements View.OnClickL
     public void onPause() {
         Log.e(TAG, "onPause");
         super.onPause();
+        uninitPreviewer();
     }
 
     @Override
     public void onStop() {
         Log.e(TAG, "onStop");
         super.onStop();
+        uninitPreviewer();
     }
 
     public void onReturn(View view){
@@ -77,6 +108,10 @@ public class PlaybackActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void initUI() {
+        // init mVideoSurface
+        mVideoSurface = (TextureView)findViewById(R.id.video_previewer_surface);
+
+        mPlayBackBtn = (Button) findViewById(R.id.btn_playback_btn);
         mSingleBtn = (Button) findViewById(R.id.btn_single_btn);
         mMultipleBtn = (Button) findViewById(R.id.btn_multi_pre_btn);
         mSelectBtn = (Button) findViewById(R.id.btn_select_btn);
@@ -88,13 +123,14 @@ public class PlaybackActivity extends AppCompatActivity implements View.OnClickL
 
         mPreviewBtn1 = (Button) findViewById(R.id.preview_button1);
         mPreviewBtn2 = (Button) findViewById(R.id.preview_button2);
-        mPreviewBtn3 = (Button) findViewById(R.id.preview_button3);
+        mPreviewBtn3 = (Button) findViewById(R.id.preview_button2);
         mPreviewBtn4 = (Button) findViewById(R.id.preview_button4);
-        mPreviewBtn5 = (Button) findViewById(R.id.preview_button5);
-        mPreviewBtn6 = (Button) findViewById(R.id.preview_button6);
-        mPreviewBtn7 = (Button) findViewById(R.id.preview_button7);
-        mPreviewBtn8 = (Button) findViewById(R.id.preview_button8);
 
+        if (null != mVideoSurface) {
+            mVideoSurface.setSurfaceTextureListener(this);
+        }
+
+        mPlayBackBtn.setOnClickListener(this);
         mSingleBtn.setOnClickListener(this);
         mMultipleBtn.setOnClickListener(this);
         mSelectBtn.setOnClickListener(this);
@@ -108,12 +144,69 @@ public class PlaybackActivity extends AppCompatActivity implements View.OnClickL
         mPreviewBtn2.setOnClickListener(this);
         mPreviewBtn3.setOnClickListener(this);
         mPreviewBtn4.setOnClickListener(this);
-        mPreviewBtn5.setOnClickListener(this);
-        mPreviewBtn6.setOnClickListener(this);
-        mPreviewBtn7.setOnClickListener(this);
-        mPreviewBtn8.setOnClickListener(this);
 
         createProgressDialog();
+    }
+
+    private void initPreviewer() {
+
+        BaseProduct product = ERLApplication.getProductInstance();
+
+        if (product == null || !product.isConnected()) {
+            showToast(getString(R.string.disconnected));
+        } else {
+            if (null != mVideoSurface) {
+                mVideoSurface.setSurfaceTextureListener(this);
+            }
+
+            mCamera = product.getCamera();
+
+            if (!product.getModel().equals(Model.UNKNOWN_AIRCRAFT)) {
+                if (VideoFeeder.getInstance().getVideoFeeds() != null
+                        && VideoFeeder.getInstance().getVideoFeeds().size() > 0) {
+                    VideoFeeder.getInstance().getVideoFeeds().get(0).setCallback(mReceivedVideoDataCallBack);
+                }
+            }
+        }
+    }
+
+    private void uninitPreviewer() {
+
+        if (ERLApplication.isCameraModuleAvailable()){
+            if (mCamera != null){
+                // Reset the callback
+                VideoFeeder.getInstance().getVideoFeeds().get(0).setCallback(null);
+            }
+        }
+    }
+
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        Log.e(TAG, "onSurfaceTextureAvailable");
+        if (mCodecManager == null) {
+            mCodecManager = new DJICodecManager(this, surface, width, height);
+        }
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        Log.e(TAG, "onSurfaceTextureSizeChanged");
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        Log.e(TAG,"onSurfaceTextureDestroyed");
+        if (mCodecManager != null) {
+            mCodecManager.cleanSurface();
+            mCodecManager = null;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+
     }
 
     protected void initCameraCallBacks() {
@@ -121,23 +214,43 @@ public class PlaybackActivity extends AppCompatActivity implements View.OnClickL
 
             if (mCamera != null) {
 
-                mCamera.getPlayback().setDJICameraPlayBackStateCallBack(new DJIPlaybackManager.DJICameraPlayBackStateCallBack() {
+                mCamera.getPlaybackManager().setPlaybackStateCallback(new PlaybackManager.PlaybackState.CallBack() {
                     @Override
-                    public void onResult(DJIPlaybackManager.DJICameraPlaybackState playbackState) {
+                    public void onUpdate(PlaybackManager.PlaybackState playbackState) {
+
                         if (null != playbackState) {
 
-                            if(playbackState.playbackMode.equals(DJICameraSettingsDef.CameraPlaybackMode.MultipleMediaFilesDisplay) ||
-                                    playbackState.playbackMode.equals(DJICameraSettingsDef.CameraPlaybackMode.MediaFilesDownload) ||
-                                    playbackState.playbackMode.equals(DJICameraSettingsDef.CameraPlaybackMode.MultipleMediaFilesDelete)) {
+                            if (playbackState.getPlaybackMode().equals(SettingsDefinitions.
+                                    PlaybackMode.MULTIPLE_MEDIA_FILE_PREVIEW) ||
+                                    playbackState.getPlaybackMode().equals(SettingsDefinitions.
+                                            PlaybackMode.MEDIA_FILE_DOWNLOAD) ||
+                                    playbackState.getPlaybackMode().equals(SettingsDefinitions.
+                                            PlaybackMode.MULTIPLE_FILES_EDIT)) {
                                 isSinglePreview = false;
                             } else {
                                 isSinglePreview = true;
                             }
+
+                            mPlaybackState = playbackState;
+
+                            PlaybackActivity.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (mPlaybackState.getPlaybackMode().equals(SettingsDefinitions.PlaybackMode.MULTIPLE_MEDIA_FILE_PREVIEW)){
+                                        mSelectBtn.setText("Select");
+                                    }else if(mPlaybackState.getPlaybackMode().equals(SettingsDefinitions.PlaybackMode.MULTIPLE_FILES_EDIT)){
+                                        mSelectBtn.setText("Cancel");
+                                    }
+                                }
+                            });
                         }
+
                     }
                 });
+
             }
         }
+
     }
 
     public void showToast(final String msg) {
@@ -197,38 +310,34 @@ public class PlaybackActivity extends AppCompatActivity implements View.OnClickL
         switch (v.getId()) {
             case R.id.btn_single_btn: {
                 if (!isSinglePreview)
-                    mCamera.getPlayback().enterSinglePreviewModeWithIndex(0);
+                    mCamera.getPlaybackManager().enterSinglePreviewModeWithIndex(0);
                 break;
             }
             case R.id.btn_multi_pre_btn: {
                 if (isSinglePreview)
-                    mCamera.getPlayback().enterMultiplePreviewMode();
+                    mCamera.getPlaybackManager().enterMultiplePreviewMode();
                 break;
             }
-//            case R.id.btn_select_btn: {
-//
-//                if (mPlaybackState == null) {
-//                    break;
-//                }
-//                if (mPlaybackState.equals(DJICameraSettingsDef.CameraPlaybackMode.MultipleMediaFilesDisplay)) {
-//                    mCamera.getPlayback().enterMultipleEditMode();
-//                } else if (mPlaybackState.equals(DJICameraSettingsDef.CameraPlaybackMode.MultipleMediaFilesDelete)) {
-//                    mCamera.getPlayback().exitMultipleEditMode();
-//                }
-//                break;
-//            }
+            case R.id.btn_select_btn: {
 
-            case R.id.btn_select_btn:{
-                switchCameraMode(DJICameraSettingsDef.CameraMode.Playback);
+                if (mPlaybackState == null) {
+                    break;
+                }
+                if (mPlaybackState.equals(SettingsDefinitions.PlaybackMode.MULTIPLE_MEDIA_FILE_PREVIEW)) {
+                    mCamera.getPlaybackManager().enterMultipleEditMode();
+                } else if (mPlaybackState.equals(SettingsDefinitions.PlaybackMode.MULTIPLE_FILES_EDIT)) {
+                    mCamera.getPlaybackManager().exitMultipleEditMode();
+                }
+                break;
             }
             case R.id.btn_select_all_btn: {
                 if (mPlaybackState == null) {
                     break;
                 }
-                if (mPlaybackState.isAllFilesInPageSelected) {
-                    mCamera.getPlayback().unselectAllFilesInPage();
+                if (mPlaybackState.isAllFilesInPageSelected()) {
+                    mCamera.getPlaybackManager().unselectAllFilesInPage();
                 } else {
-                    mCamera.getPlayback().selectAllFilesInPage();
+                    mCamera.getPlaybackManager().selectAllFilesInPage();
                 }
                 break;
             }
@@ -237,11 +346,11 @@ public class PlaybackActivity extends AppCompatActivity implements View.OnClickL
                 if (mPlaybackState == null) {
                     break;
                 }
-                if (mPlaybackState.equals(DJICameraSettingsDef.CameraPlaybackMode.MultipleMediaFilesDelete)) {
-                    mCamera.getPlayback().deleteAllSelectedFiles();
+                if (mPlaybackState.equals(SettingsDefinitions.PlaybackMode.MULTIPLE_FILES_EDIT)) {
+                    mCamera.getPlaybackManager().deleteAllSelectedFiles();
 
-                } else if (mPlaybackState.equals(DJICameraSettingsDef.CameraPlaybackMode.SinglePhotoPlayback)) {
-                    mCamera.getPlayback().deleteCurrentPreviewFile();
+                } else if (mPlaybackState.equals(SettingsDefinitions.PlaybackMode.SINGLE_PHOTO_PREVIEW)) {
+                    mCamera.getPlaybackManager().deleteCurrentPreviewFile();
                 }
                 break;
             }
@@ -253,10 +362,10 @@ public class PlaybackActivity extends AppCompatActivity implements View.OnClickL
 
                 File destDir =
                         new File(Environment.getExternalStorageDirectory().getPath() + "/ERLProject/");
-                if (mPlaybackState.equals(DJICameraSettingsDef.CameraPlaybackMode.MultipleMediaFilesDelete)) {
+                if (mPlaybackState.getPlaybackMode().equals(SettingsDefinitions.PlaybackMode.MULTIPLE_FILES_EDIT)) {
 
-                    mCamera.getPlayback().downloadSelectedFiles(destDir,
-                            new DJIPlaybackManager.CameraFileDownloadCallback() {
+                    mCamera.getPlaybackManager().downloadSelectedFiles(destDir,
+                            new PlaybackManager.FileDownloadCallback() {
                                 @Override
                                 public void onStart() {
                                     handler.sendMessage(handler.obtainMessage(SHOW_DOWNLOAD_PROGRESS_DIALOG, null));
@@ -293,17 +402,17 @@ public class PlaybackActivity extends AppCompatActivity implements View.OnClickL
             }
             case R.id.btn_previous_btn: {
                 if (isSinglePreview) {
-                    mCamera.getPlayback().multiplePreviewPreviousPage();
+                    mCamera.getPlaybackManager().proceedToPreviousSinglePreviewPage();
                 } else {
-                    mCamera.getPlayback().singlePreviewPreviousPage();
+                    mCamera.getPlaybackManager().proceedToPreviousMultiplePreviewPage();
                 }
                 break;
             }
             case R.id.btn_next_btn: {
                 if (isSinglePreview) {
-                    mCamera.getPlayback().multiplePreviewNextPage();
+                    mCamera.getPlaybackManager().proceedToNextSinglePreviewPage();
                 } else {
-                    mCamera.getPlayback().singlePreviewNextPage();
+                    mCamera.getPlaybackManager().proceedToNextMultiplePreviewPage();
                 }
                 break;
             }
@@ -323,20 +432,8 @@ public class PlaybackActivity extends AppCompatActivity implements View.OnClickL
                 previewBtnAction(3);
                 break;
             }
-            case R.id.preview_button5: {
-                previewBtnAction(4);
-                break;
-            }
-            case R.id.preview_button6: {
-                previewBtnAction(5);
-                break;
-            }
-            case R.id.preview_button7: {
-                previewBtnAction(6);
-                break;
-            }
-            case R.id.preview_button8: {
-                previewBtnAction(7);
+            case R.id.btn_playback_btn: {
+                switchCameraMode(SettingsDefinitions.CameraMode.PLAYBACK);
                 break;
             }
             default:
@@ -346,18 +443,18 @@ public class PlaybackActivity extends AppCompatActivity implements View.OnClickL
 
     private void previewBtnAction(int var){
         if ((mPlaybackState != null) && (mCamera != null)){
-            if (mPlaybackState.equals(DJICameraSettingsDef.CameraPlaybackMode.MultipleMediaFilesDelete)){
-                    mCamera.getPlayback().toggleFileSelectionAtIndex(var);
-            }else if(mPlaybackState.equals(DJICameraSettingsDef.CameraPlaybackMode.MultipleMediaFilesDisplay)){
-                    mCamera.getPlayback().enterSinglePreviewModeWithIndex(var);
+            if (mPlaybackState.getPlaybackMode().equals(SettingsDefinitions.PlaybackMode.MULTIPLE_FILES_EDIT)){
+                mCamera.getPlaybackManager().toggleFileSelectionAtIndex(var);
+            }else if(mPlaybackState.getPlaybackMode().equals(SettingsDefinitions.PlaybackMode.MULTIPLE_MEDIA_FILE_PREVIEW)){
+                mCamera.getPlaybackManager().enterSinglePreviewModeWithIndex(var);
             }
         }
     }
 
-    private void switchCameraMode(DJICameraSettingsDef.CameraMode cameraMode){
+    private void switchCameraMode(SettingsDefinitions.CameraMode cameraMode){
 
         if (mCamera != null) {
-            mCamera.setCameraMode(cameraMode, new DJICommonCallbacks.DJICompletionCallback() {
+            mCamera.setMode(cameraMode, new CommonCallbacks.CompletionCallback() {
                 @Override
                 public void onResult(DJIError djiError) {
 
@@ -370,4 +467,6 @@ public class PlaybackActivity extends AppCompatActivity implements View.OnClickL
             });
         }
     }
+
+    //TODO Ajouter 8 boutons pour le mode multiple preview
 }

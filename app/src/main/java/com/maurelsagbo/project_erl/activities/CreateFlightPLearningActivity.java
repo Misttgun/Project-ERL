@@ -13,14 +13,15 @@ import com.maurelsagbo.project_erl.R;
 import com.maurelsagbo.project_erl.application.ERLApplication;
 
 import dji.common.product.Model;
-import dji.sdk.base.DJIBaseProduct;
-import dji.sdk.camera.DJICamera;
+import dji.sdk.base.BaseProduct;
+import dji.sdk.camera.Camera;
+import dji.sdk.camera.VideoFeeder;
 import dji.sdk.codec.DJICodecManager;
 
 public class CreateFlightPLearningActivity extends AppCompatActivity implements TextureView.SurfaceTextureListener, View.OnClickListener {
 
     private static final String TAG = CreateFlightPLearningActivity.class.getName();
-    protected DJICamera.CameraReceivedVideoDataCallback mReceivedVideoDataCallBack = null;
+    protected VideoFeeder.VideoDataCallback mReceivedVideoDataCallBack = null;
 
     // Codec for video live view
     protected DJICodecManager mCodecManager = null;
@@ -35,9 +36,9 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
         initUI();
 
         // The callback for receiving the raw H264 video data for camera live view
-        mReceivedVideoDataCallBack = new DJICamera.CameraReceivedVideoDataCallback() {
+        mReceivedVideoDataCallBack = new VideoFeeder.VideoDataCallback() {
             @Override
-            public void onResult(byte[] videoBuffer, int size) {
+            public void onReceive(byte[] videoBuffer, int size) {
                 if(mCodecManager != null){
                     // Send the raw H264 video data to codec manager for decoding
                     mCodecManager.sendDataToDecoder(videoBuffer, size);
@@ -137,7 +138,7 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
     }
 
     private void initPreviewer() {
-        DJIBaseProduct product = ERLApplication.getProductInstance();
+        BaseProduct product = ERLApplication.getProductInstance();
         if (product == null || !product.isConnected()) {
             showToast("Aircraft is disconnected");
         } else {
@@ -145,20 +146,19 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
                 mVideoSurface.setSurfaceTextureListener(this);
             }
 
-            if (!product.getModel().equals(Model.UnknownAircraft)) {
-                DJICamera camera = product.getCamera();
-                if (camera != null){
-                    // Set the callback
-                    camera.setDJICameraReceivedVideoDataCallback(mReceivedVideoDataCallBack);
+            if (!product.getModel().equals(Model.UNKNOWN_AIRCRAFT)) {
+                if (VideoFeeder.getInstance().getVideoFeeds() != null
+                        && VideoFeeder.getInstance().getVideoFeeds().size() > 0) {
+                    VideoFeeder.getInstance().getVideoFeeds().get(0).setCallback(mReceivedVideoDataCallBack);
                 }
             }
         }
     }
     private void uninitPreviewer() {
-        DJICamera camera = ERLApplication.getCameraInstance();
+        Camera camera = ERLApplication.getCameraInstance();
         if (camera != null){
             // Reset the callback
-            ERLApplication.getCameraInstance().setDJICameraReceivedVideoDataCallback(null);
+            VideoFeeder.getInstance().getVideoFeeds().get(0).setCallback(null);
         }
     }
 

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -30,21 +31,30 @@ import com.maurelsagbo.project_erl.mapper.FlightPlanORM;
 import com.maurelsagbo.project_erl.models.FlightPlan;
 import com.maurelsagbo.project_erl.models.WayPoint;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import dji.common.error.DJIError;
-import dji.common.flightcontroller.DJIFlightControllerCurrentState;
-import dji.common.util.DJICommonCallbacks;
-import dji.sdk.base.DJIBaseProduct;
-import dji.sdk.flightcontroller.DJIFlightController;
-import dji.sdk.flightcontroller.DJIFlightControllerDelegate;
-import dji.sdk.missionmanager.DJIMission;
-import dji.sdk.missionmanager.DJIMissionManager;
-import dji.sdk.missionmanager.DJIWaypoint;
-import dji.sdk.missionmanager.DJIWaypointMission;
-import dji.sdk.products.DJIAircraft;
+import dji.common.flightcontroller.FlightControllerState;
+import dji.common.mission.waypoint.Waypoint;
+import dji.common.mission.waypoint.WaypointAction;
+import dji.common.mission.waypoint.WaypointActionType;
+import dji.common.mission.waypoint.WaypointMission;
+import dji.common.mission.waypoint.WaypointMissionDownloadEvent;
+import dji.common.mission.waypoint.WaypointMissionExecutionEvent;
+import dji.common.mission.waypoint.WaypointMissionFinishedAction;
+import dji.common.mission.waypoint.WaypointMissionFlightPathMode;
+import dji.common.mission.waypoint.WaypointMissionHeadingMode;
+import dji.common.mission.waypoint.WaypointMissionUploadEvent;
+import dji.common.util.CommonCallbacks;
+import dji.sdk.base.BaseProduct;
+import dji.sdk.flightcontroller.FlightController;
+import dji.sdk.mission.waypoint.WaypointMissionOperator;
+import dji.sdk.mission.waypoint.WaypointMissionOperatorListener;
+import dji.sdk.products.Aircraft;
+import dji.sdk.sdkmanager.DJISDKManager;
 
-public class FlightPDetailActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, DJIMissionManager.MissionProgressStatusCallback, DJICommonCallbacks.DJICompletionCallback {
+public class FlightPDetailActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
 
     protected static final String TAG = "FlightPDetailActivity";
 
@@ -52,22 +62,20 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
 
     private GoogleMap gMap;
 
-    private float mSpeed = 3f;
+    private float mSpeed = 5f;
     private float mAltitude = 12f;
 
     private double droneLocationLat, droneLocationLng;
     private Marker droneMarker = null;
 
-    private DJIWaypointMission.DJIWaypointMissionFinishedAction mFinishedAction = DJIWaypointMission.DJIWaypointMissionFinishedAction.GoFirstWaypoint;
-    private DJIWaypointMission.DJIWaypointMissionHeadingMode mHeadingMode = DJIWaypointMission.DJIWaypointMissionHeadingMode.Auto;
-    private DJIWaypointMission mWaypointMission;
-    private DJIMissionManager mMissionManager;
-    private DJIWaypoint.DJIWaypointAction photoAction = new DJIWaypoint.DJIWaypointAction(DJIWaypoint.DJIWaypointActionType.StartTakePhoto, 2);
-    private DJIWaypoint.DJIWaypointAction gimbalAction = new DJIWaypoint.DJIWaypointAction(DJIWaypoint.DJIWaypointActionType.GimbalPitch, 0);
+    public static WaypointMission.Builder waypointMissionBuilder;
+    private FlightController mFlightController;
+    private WaypointMissionOperator instance;
+    private WaypointMissionFinishedAction mFinishedAction = WaypointMissionFinishedAction.GO_FIRST_WAYPOINT;
+    private WaypointMissionHeadingMode mHeadingMode = WaypointMissionHeadingMode.AUTO;
 
-    private DJIFlightController mFlightController;
-
-    private DJIBaseProduct product;
+    private WaypointAction photoAction = new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 2);
+    private WaypointAction gimbalAction = new WaypointAction(WaypointActionType.GIMBAL_PITCH, 0);
 
     private List<WayPoint> waypoints;
 
@@ -103,18 +111,21 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         IntentFilter filter = new IntentFilter();
         filter.addAction(ERLApplication.FLAG_CONNECTION_CHANGE);
         registerReceiver(mReceiver, filter);
+
+        // Add the listener for waypoint mission operator
+        addListener();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        removeListener();
     }
 
     @Override
     protected void onResume(){
         super.onResume();
         initFlightController();
-        initMissionManager();
     }
 
     @Override
@@ -154,7 +165,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
                 break;
             }
             case R.id.prepare_flight_p_btn: {
-                prepareWayPointMission();
+                uploadWayPointMission();
                 break;
             }
             case R.id.start_flight_p_btn:{
@@ -255,104 +266,135 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
      */
     private void onProductConnectionChange() {
         initFlightController();
-        initMissionManager();
-    }
-
-    /**
-     * Method which initialize the mission manager
-     */
-    private void initMissionManager() {
-        product = ERLApplication.getProductInstance();
-        if (product == null || !product.isConnected()) {
-            mMissionManager = null;
-            return;
-        } else {
-            mMissionManager = product.getMissionManager();
-            mMissionManager.setMissionProgressStatusCallback(this);
-            mMissionManager.setMissionExecutionFinishedCallback(this);
-        }
-
-        mWaypointMission = new DJIWaypointMission();
-    }
-
-    /**
-     * DJIMissionManager Delegate Methods
-     */
-    @Override
-    public void missionProgressStatus(DJIMission.DJIMissionProgressStatus progressStatus) {
-
-    }
-
-    /**
-     * DJIMissionManager Delegate Methods
-     */
-    @Override
-    public void onResult(DJIError error) {
-        setResultToToast("Execution finished: " + (error == null ? "Success!" : error.getDescription()));
     }
 
     /**
      * Method which get and initializes the flight controller
      */
     private void initFlightController() {
-        product = ERLApplication.getProductInstance();
+        BaseProduct product = ERLApplication.getProductInstance();
         if (product != null && product.isConnected()) {
-            if (product instanceof DJIAircraft) {
-                mFlightController = ((DJIAircraft) product).getFlightController();
+            if (product instanceof Aircraft) {
+                mFlightController = ((Aircraft) product).getFlightController();
             }
         }
         if (mFlightController != null) {
-            mFlightController.setUpdateSystemStateCallback(new DJIFlightControllerDelegate.FlightControllerUpdateSystemStateCallback() {
+            mFlightController.setStateCallback(new FlightControllerState.Callback() {
                 @Override
-                public void onResult(DJIFlightControllerCurrentState state) {
-                    droneLocationLat = state.getAircraftLocation().getLatitude();
-                    droneLocationLng = state.getAircraftLocation().getLongitude();
+                public void onUpdate(FlightControllerState djiFlightControllerCurrentState) {
+                    droneLocationLat = djiFlightControllerCurrentState.getAircraftLocation().getLatitude();
+                    droneLocationLng = djiFlightControllerCurrentState.getAircraftLocation().getLongitude();
                     updateDroneLocation();
                 }
             });
         }
     }
 
+    //Add Listener for WaypointMissionOperator
+    private void addListener() {
+        if (getWaypointMissionOperator() != null){
+            getWaypointMissionOperator().addListener(eventNotificationListener);
+        }
+    }
+
+    private void removeListener() {
+        if (getWaypointMissionOperator() != null) {
+            getWaypointMissionOperator().removeListener(eventNotificationListener);
+        }
+    }
+
+    private WaypointMissionOperatorListener eventNotificationListener = new WaypointMissionOperatorListener() {
+        @Override
+        public void onDownloadUpdate(WaypointMissionDownloadEvent downloadEvent) {
+
+        }
+
+        @Override
+        public void onUploadUpdate(WaypointMissionUploadEvent uploadEvent) {
+
+        }
+
+        @Override
+        public void onExecutionUpdate(WaypointMissionExecutionEvent executionEvent) {
+
+        }
+
+        @Override
+        public void onExecutionStart() {
+
+        }
+
+        @Override
+        public void onExecutionFinish(@Nullable final DJIError error) {
+            setResultToToast("Execution finished: " + (error == null ? "Success!" : error.getDescription()));
+        }
+    };
+
+    public WaypointMissionOperator getWaypointMissionOperator() {
+        if (instance == null) {
+            instance = DJISDKManager.getInstance().getMissionControl().getWaypointMissionOperator();
+        }
+        return instance;
+    }
+
     /**
      * Method which configure the waypoint mision before take off
      */
     private void configWayPointMission() {
-        if (mWaypointMission != null) {
-            mWaypointMission.finishedAction = mFinishedAction;
-            mWaypointMission.headingMode = mHeadingMode;
-            mWaypointMission.autoFlightSpeed = mSpeed;
+        // Transform the current waypoints in DJI format and add them to a list
+        List<Waypoint> djiWaypoints = new ArrayList<>();
+        for(WayPoint wp : waypoints){
+            Waypoint mWaypoint = new Waypoint(wp.getLatitude(), wp.getLongitude(), mAltitude);
+            mWaypoint.addAction(gimbalAction);
+            mWaypoint.addAction(photoAction);
+            djiWaypoints.add(mWaypoint);
+        }
 
-            for(WayPoint wp : waypoints){
-                DJIWaypoint mWaypoint = new DJIWaypoint(wp.getLatitude(), wp.getLongitude(), mAltitude);
-                mWaypoint.addAction(gimbalAction);
-                mWaypoint.addAction(photoAction);
+        if (waypointMissionBuilder != null) {
+            waypointMissionBuilder.finishedAction(mFinishedAction)
+                    .headingMode(mHeadingMode)
+                    .autoFlightSpeed(mSpeed)
+                    .flightPathMode(WaypointMissionFlightPathMode.NORMAL);
 
-                //Add waypoints to Waypoint arraylist;
-                mWaypointMission.addWaypoint(mWaypoint);
-            }
+            // Add the DJI Waypoints list to the mission builder
+            waypointMissionBuilder.waypointList(djiWaypoints);
+        } else {
+            waypointMissionBuilder = new WaypointMission.Builder().finishedAction(mFinishedAction)
+                    .headingMode(mHeadingMode)
+                    .autoFlightSpeed(mSpeed)
+                    .maxFlightSpeed(mSpeed)
+                    .flightPathMode(WaypointMissionFlightPathMode.NORMAL);
+
+            // Add the DJI Waypoints list to the mission builder
+            waypointMissionBuilder.waypointList(djiWaypoints);
+        }
+
+        DJIError error = getWaypointMissionOperator().loadMission(waypointMissionBuilder.build());
+        if (error == null) {
+            setResultToToast("loadWaypoint succeeded");
+        } else {
+            setResultToToast("loadWaypoint failed " + error.getDescription());
         }
     }
 
     /**
-     * Method which prepare a waypoint mission
+     * Method which upload a waypoint mission
      */
-    private void prepareWayPointMission(){
+    private void uploadWayPointMission(){
         // Configure the waypoint mission
         configWayPointMission();
-        if (mMissionManager != null && mWaypointMission != null) {
-            DJIMission.DJIMissionProgressHandler progressHandler = new DJIMission.DJIMissionProgressHandler() {
-                @Override
-                public void onProgress(DJIMission.DJIProgressType type, float progress) {
-                }
-            };
 
-            mMissionManager.prepareMission(mWaypointMission, progressHandler, new DJICommonCallbacks.DJICompletionCallback() {
-                @Override
-                public void onResult(DJIError error) {
-                    setResultToToast(error == null ? "Mission Prepare Successfully" : error.getDescription());
+        getWaypointMissionOperator().uploadMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError error) {
+                if (error == null) {
+                    setResultToToast("Mission upload successfully!");
+                } else {
+                    setResultToToast("Mission upload failed, error: " + error.getDescription() + " retrying...");
+                    getWaypointMissionOperator().retryUploadMission(null);
                 }
-            });
-        }
+            }
+        });
 
     }
 
@@ -360,35 +402,24 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
      * Method which start a waypoint mission
      */
     private void startWaypointMission(){
-        if (mMissionManager != null) {
-            mMissionManager.startMissionExecution(new DJICommonCallbacks.DJICompletionCallback() {
-                @Override
-                public void onResult(DJIError error) {
-                    setResultToToast("Mission Start: " + (error == null ? "Successfully" : error.getDescription()));
-                }
-            });
-
-        } else {
-            setResultToToast("Prepare Mission First!");
-        }
+        getWaypointMissionOperator().startMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError error) {
+                setResultToToast("Mission Start: " + (error == null ? "Successfully" : error.getDescription()));
+            }
+        });
     }
 
     /**
      * Method which stop a waypoint mission
      */
     private void stopWaypointMission(){
-        if (mMissionManager != null) {
-            mMissionManager.stopMissionExecution(new DJICommonCallbacks.DJICompletionCallback() {
-                @Override
-                public void onResult(DJIError error) {
-                    setResultToToast("Mission Stop: " + (error == null ? "Successfully" : error.getDescription()));
-                }
-            });
-
-            if (mWaypointMission != null){
-                mWaypointMission.removeAllWaypoints();
+        getWaypointMissionOperator().stopMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError error) {
+                setResultToToast("Mission Stop: " + (error == null ? "Successfully" : error.getDescription()));
             }
-        }
+        });
     }
 
     /**
@@ -426,7 +457,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     }
 
     private void refreshUI(){
-        product = ERLApplication.getProductInstance();
+        BaseProduct product = ERLApplication.getProductInstance();
         if (product != null && product.isConnected()) {
             locate.setEnabled(true);
             start.setEnabled(true);

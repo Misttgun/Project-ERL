@@ -18,8 +18,8 @@ import android.widget.Toast;
 import com.maurelsagbo.project_erl.R;
 import com.maurelsagbo.project_erl.application.ERLApplication;
 
-import dji.sdk.base.DJIBaseProduct;
-import dji.sdk.products.DJIAircraft;
+import dji.sdk.base.BaseProduct;
+import dji.sdk.products.Aircraft;
 
 public class ConnectionActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -63,7 +63,6 @@ public class ConnectionActivity extends AppCompatActivity implements View.OnClic
     public void onResume() {
         Log.e(TAG, "onResume");
         super.onResume();
-        updateTitleBar();
     }
 
     @Override
@@ -108,28 +107,6 @@ public class ConnectionActivity extends AppCompatActivity implements View.OnClic
         }
     };
 
-    private void updateTitleBar() {
-        boolean ret = false;
-        DJIBaseProduct product = ERLApplication.getProductInstance();
-        if (product != null) {
-            if(product.isConnected()) {
-                //The product is connected
-                showToast(ERLApplication.getProductInstance().getModel() + " Connected");
-                ret = true;
-            } else {
-                if(product instanceof DJIAircraft) {
-                    DJIAircraft aircraft = (DJIAircraft) product;
-                    if(aircraft.getRemoteController() != null && aircraft.getRemoteController().isConnected()) {
-                        // The product is not connected, but the remote controller is connected
-                        showToast("only RC Connected");
-                        ret = true;
-                    }
-                }
-            }
-        }
-
-    }
-
     public void showToast(final String msg) {
         runOnUiThread(new Runnable() {
             public void run() {
@@ -157,13 +134,13 @@ public class ConnectionActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void refreshSDKRelativeUI() {
-        DJIBaseProduct mProduct = ERLApplication.getProductInstance();
+        BaseProduct mProduct = ERLApplication.getProductInstance();
 
         if (null != mProduct && mProduct.isConnected()) {
             Log.v(TAG, "refreshSDK: True");
             mBtnOpen.setEnabled(true);
 
-            String str = mProduct instanceof DJIAircraft ? "DJIAircraft" : "DJIHandHeld";
+            String str = mProduct instanceof Aircraft ? "DJIAircraft" : "DJIHandHeld";
             mTextConnectionStatus.setText("Status: " + str + " connected");
 
             if (null != mProduct.getModel()) {

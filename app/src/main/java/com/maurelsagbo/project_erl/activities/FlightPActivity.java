@@ -13,14 +13,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -33,6 +32,7 @@ import com.maurelsagbo.project_erl.models.WayPoint;
 import com.maurelsagbo.project_erl.utilities.MySingleton;
 import com.maurelsagbo.project_erl.utilities.StringRequestCallback;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -49,7 +49,7 @@ public class FlightPActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private FlightPAdapter adapter;
     private TextView emptyText;
-    private ProgressBar pb;
+    private RelativeLayout loadingView;
 
     // Check if we can exit the application
     private Boolean exit = false;
@@ -73,7 +73,8 @@ public class FlightPActivity extends AppCompatActivity {
         emptyText = (TextView) findViewById(R.id.empty_recycler);
 
         // Get the progress bar
-        pb = (ProgressBar) findViewById(R.id.pb_loading);
+        loadingView = (RelativeLayout) findViewById(R.id.loading_view);
+        loadingView.setVisibility(View.GONE);
 
         // Get the recycler view and set fixed size to true
         recyclerView = (RecyclerView) findViewById(R.id.recycler_fp_location);
@@ -140,6 +141,10 @@ public class FlightPActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.get_fp:
+                Log.i(TAG, "Affichage de la progress bar");
+                loadingView.setVisibility(View.VISIBLE);
+                emptyText.setText("Récupération des plan de vol en cours...");
+                emptyText.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 // Get the fight plans from server and then update the map
                 populateSQLite(this);
 
@@ -156,6 +161,9 @@ public class FlightPActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Method which updates the FlightPlan list in the view
+     */
     private void updateFlightPlanList(){
         List<FlightPlan> flightPlans = FlightPlanORM.getFlightPlans(this);
 
@@ -170,41 +178,42 @@ public class FlightPActivity extends AppCompatActivity {
         }
     }
 
-    private void downloadFPById(final Context context, final long id){
-        JsonObjectRequest requestWP = new JsonObjectRequest(Request.Method.GET, "http://vps361908.ovh.net/elittoral/api/flightplans/" + id, null,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            try {
-                                String wayPointJson = response.getJSONArray("waypoints").toString();
-                                Log.i(TAG, wayPointJson);
-                                List<WayPoint> wayPoints = Arrays.asList(gson.fromJson(wayPointJson, WayPoint[].class));
-                                for(WayPoint wp : wayPoints){
-                                    WayPointORM.postWaypoint(context, wp, id);
-                                }
-                            } catch (JSONException e){
-                                Log.e(TAG, "Failed to parse JSON to Waypoint list");
-                                e.printStackTrace();
-                            }
-                        }
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
+//    private void downloadFPById(final Context context, final long id){
+//        JsonObjectRequest requestWP = new JsonObjectRequest(Request.Method.GET, "http://vps361908.ovh.net/dev/elittoral/api/flightplans/" + id, null,
+//                    new Response.Listener<JSONObject>() {
+//                        @Override
+//                        public void onResponse(JSONObject response) {
+//                            try {
+//                                String wayPointJson = response.getJSONArray("waypoints").toString();
+//                                List<WayPoint> wayPoints = Arrays.asList(gson.fromJson(wayPointJson, WayPoint[].class));
+//                                for(WayPoint wp : wayPoints){
+//                                    WayPointORM.postWaypoint(context, wp, id);
+//                                }
+//                            } catch (JSONException e){
+//                                Log.e(TAG, "Failed to parse JSON to Waypoint list");
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    }, new Response.ErrorListener() {
+//                @Override
+//                public void onErrorResponse(VolleyError error) {
+//
+//                }
+//            });
+//
+//        MySingleton.getInstance(this).getRequestQueue().add(requestWP);
+//
+//    }
 
-                }
-            });
-
-        MySingleton.getInstance(this).getRequestQueue().add(requestWP);
-
-    }
-
+    /**
+     * Method which download all the Flight Plan and Waypoints associated from the server
+     * @param callback
+     */
     private void downloadFlightPlan(final StringRequestCallback callback){
-        StringRequest requestFP = new StringRequest(Request.Method.GET,"http://vps361908.ovh.net/elittoral/api/flightplans/",
+        StringRequest requestFP = new StringRequest(Request.Method.GET,"http://vps361908.ovh.net/dev/elittoral/api/flightplans/dump",
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        Log.i(TAG, "Affichage de la progress bar");
-                        pb.setVisibility(ProgressBar.VISIBLE);
                         callback.onSuccess(response);
                     }
                 }, new Response.ErrorListener() {
@@ -217,22 +226,39 @@ public class FlightPActivity extends AppCompatActivity {
         MySingleton.getInstance(this).getRequestQueue().add(requestFP);
     }
 
+    /**
+     * Method which add the Flight Plans and Waypoint to the SQLite database after the download for the server is successfull
+     * @param context
+     */
     private void populateSQLite(final Context context){
         downloadFlightPlan(new StringRequestCallback() {
             @Override
             public void onSuccess(String response) {
-                List<FlightPlan> tempFlightPlans = Arrays.asList(gson.fromJson(response, FlightPlan[].class));
-                Log.i(TAG, response);
-                for(FlightPlan fp : tempFlightPlans){
-                    long id = FlightPlanORM.postFlightPlan(context, fp);
-                    if(id != -1){
-                        downloadFPById(context, fp.getId());
+                try {
+                    JSONObject flightPlanJson = new JSONObject(response);
+                    JSONArray fpArray = flightPlanJson.getJSONArray("flightplans");
+
+                    for(int i = 0; i < fpArray.length(); i++){
+                        JSONObject fpObject = fpArray.getJSONObject(i);
+                        String wpArray = fpObject.getJSONArray("waypoints").toString();
+                        FlightPlan flightPlanTemp = gson.fromJson(fpObject.toString(), FlightPlan.class);
+                        List<WayPoint> waypointTemp = Arrays.asList(gson.fromJson(wpArray, WayPoint[].class));
+                        long id = FlightPlanORM.postFlightPlan(context, flightPlanTemp);
+                        if(id != -1){
+                            for(WayPoint wp : waypointTemp){
+                                WayPointORM.postWaypoint(context,wp,id);
+                            }
+                        }
                     }
+
+                    Log.i(TAG, "Dissimulation de la progress bar");
+                    loadingView.setVisibility(View.GONE);
+                    Log.i(TAG, "Updating flightplan list from response");
+                    updateFlightPlanList();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-                Log.i(TAG, "Dissimulation de la progress bar");
-                pb.setVisibility(ProgressBar.INVISIBLE);
-                Log.i(TAG, "Updating flightplan list from response");
-                updateFlightPlanList();
+
             }
         });
     }

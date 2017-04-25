@@ -6,10 +6,19 @@
     android:orientation="vertical"
     tools:context=".activities.PlaybackActivity">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/playback_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme" />
+
     <LinearLayout
         android:id="@+id/layout1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/playback_toolbar"
         android:background="@android:color/darker_gray"
         android:orientation="horizontal"
         android:weightSum="4">
@@ -47,7 +56,7 @@
             android:textSize="14sp" />
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/btn_playback_btn"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_weight="1"
@@ -72,7 +81,7 @@
         android:layout_below="@+id/layout1"
         android:layout_weight="1"
         android:orientation="horizontal"
-        android:weightSum="2">
+        android:weightSum="4">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -93,7 +102,7 @@
                 android:text="" />
 
             <Button
-                android:id="@+id/preview_button4"
+                android:id="@+id/preview_button5"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_alignStart="@+id/preview_button1"
@@ -117,6 +126,39 @@
                 android:id="@+id/preview_button2"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_alignBaseline="@+id/preview_button1"
+                android:layout_alignBottom="@+id/preview_button1"
+                android:layout_alignStart="@+id/preview_button6"
+                android:layout_marginBottom="4dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:text="" />
+
+            <Button
+                android:id="@+id/preview_button6"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignBottom="@+id/preview_button5"
+                android:layout_marginTop="4dp"
+                android:layout_toEndOf="@+id/preview_button5"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:text="" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/preview_button3"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_alignTop="@+id/timer"
                 android:layout_marginBottom="4dp"
                 android:layout_toEndOf="@+id/preview_button2"
@@ -128,13 +170,43 @@
                 android:id="@+id/preview_button7"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_alignStart="@+id/preview_button2"
-                android:layout_below="@+id/preview_button2"
+                android:layout_alignStart="@+id/preview_button3"
+                android:layout_below="@+id/preview_button3"
                 android:layout_marginTop="4dp"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
                 android:text="" />
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="4dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/preview_button4"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignTop="@+id/preview_button3"
+                android:layout_marginBottom="4dp"
+                android:layout_toEndOf="@+id/preview_button3"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:text="" />
+
+            <Button
+                android:id="@+id/preview_button8"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignStart="@+id/preview_button4"
+                android:layout_below="@+id/preview_button4"
+                android:layout_marginTop="4dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:text="" />
         </LinearLayout>
 
     </LinearLayout>

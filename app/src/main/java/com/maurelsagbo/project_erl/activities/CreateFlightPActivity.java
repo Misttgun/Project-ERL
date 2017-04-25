@@ -142,7 +142,7 @@ public class CreateFlightPActivity extends AppCompatActivity implements View.OnC
         markerOptions.position(point);
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
         gMap.addMarker(markerOptions);
-        WayPoint wayPoint = new WayPoint(waypoints.size()+1, point.latitude, point.longitude, 24.0, 0);
+        WayPoint wayPoint = new WayPoint(waypoints.size()+1, point.latitude, point.longitude, 5.0);
         waypoints.add(wayPoint);
     }
 

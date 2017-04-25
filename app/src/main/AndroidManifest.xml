@@ -135,7 +135,11 @@
         <activity
             android:name=".activities.PlaybackActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.FlightPActivity" />
+        </activity>
     </application>
 
 </manifest>

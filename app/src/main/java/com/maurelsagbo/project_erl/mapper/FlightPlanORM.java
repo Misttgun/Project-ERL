@@ -27,10 +27,14 @@ public class FlightPlanORM {
     private static final String COLUMN_NAME_TYPE = "TEXT UNIQUE";
     private static final String COLUMN_NAME = "nom";
 
+    private static final String COLUMN_WAYPOINTCOUNT_TYPE = "INTEGER";
+    private static final String COLUMN_WAYPOINTCOUNT = "nombre_wp";
+
     public static final String SQL_CREATE_TABLE =
             "CREATE TABLE " + TABLE_NAME + " (" +
                     COLUMN_ID + " " + COLUMN_ID_TYPE + COMMA_SEP +
-                    COLUMN_NAME + " " + COLUMN_NAME_TYPE + ");";
+                    COLUMN_NAME + " " + COLUMN_NAME_TYPE + COMMA_SEP +
+                    COLUMN_WAYPOINTCOUNT + " " + COLUMN_WAYPOINTCOUNT_TYPE + ");";
 
     public static final String SQL_DROP_TABLE =
             "DROP TABLE IF EXISTS " + TABLE_NAME;
@@ -115,6 +119,7 @@ public class FlightPlanORM {
         ContentValues values = new ContentValues();
 
         values.put(FlightPlanORM.COLUMN_NAME, flightPlan.getLocationName());
+        values.put(FlightPlanORM.COLUMN_WAYPOINTCOUNT, flightPlan.getNumWaypoint());
 
         return values;
     }
@@ -124,7 +129,7 @@ public class FlightPlanORM {
 
         flightPlan.setId(cursor.getLong(cursor.getColumnIndex(COLUMN_ID)));
         flightPlan.setLocationName(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)));
-
+        flightPlan.setNumWaypoint(cursor.getInt(cursor.getColumnIndex(COLUMN_WAYPOINTCOUNT)));
         flightPlan.setWayPoints((WayPointORM.getWayPoints(context, flightPlan.getId())));
 
         return flightPlan;

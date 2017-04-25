@@ -95,7 +95,7 @@ public class ConnectionActivity extends AppCompatActivity implements View.OnClic
         mTextProduct = (TextView) findViewById(R.id.text_product_info);
         mBtnOpen = (Button) findViewById(R.id.btn_open);
         mBtnOpen.setOnClickListener(this);
-        mBtnOpen.setEnabled(false);
+        mBtnOpen.setEnabled(true);
 
     }
 
@@ -138,7 +138,7 @@ public class ConnectionActivity extends AppCompatActivity implements View.OnClic
 
         if (null != mProduct && mProduct.isConnected()) {
             Log.v(TAG, "refreshSDK: True");
-            mBtnOpen.setEnabled(true);
+            //mBtnOpen.setEnabled(true);
 
             String str = mProduct instanceof Aircraft ? "DJIAircraft" : "DJIHandHeld";
             mTextConnectionStatus.setText("Status: " + str + " connected");
@@ -150,10 +150,12 @@ public class ConnectionActivity extends AppCompatActivity implements View.OnClic
             }
         } else {
             Log.v(TAG, "refreshSDK: False");
-            mBtnOpen.setEnabled(false);
+            //mBtnOpen.setEnabled(false);
 
             mTextProduct.setText(R.string.product_information);
             mTextConnectionStatus.setText(R.string.connection_loose);
         }
     }
+
+    //TODO Remove comments on button status
 }

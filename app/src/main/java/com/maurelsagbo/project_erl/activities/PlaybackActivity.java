@@ -6,8 +6,12 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
@@ -42,7 +46,7 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
 
     private Button mPreviousBtn, mNextBtn, mSelectBtn, mSelectAllBtn, mPlayBackBtn;
     private Button mSingleBtn, mMultipleBtn, mDownloadBtn, mDeleteBtn;
-    private Button mPreviewBtn1, mPreviewBtn2, mPreviewBtn3, mPreviewBtn4;
+    private Button mPreviewBtn1, mPreviewBtn2, mPreviewBtn3, mPreviewBtn4, mPreviewBtn5, mPreviewBtn6, mPreviewBtn7, mPreviewBtn8;
 
     private final int SHOWTOAST = 1;
     private final int SHOW_DOWNLOAD_PROGRESS_DIALOG = 2;
@@ -59,6 +63,14 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
 
         // Initialize the UI
         initUI();
+
+        // Create the playback activity toolbar
+        Toolbar playbackToolbar = (Toolbar) findViewById(R.id.playback_toolbar);
+        setSupportActionBar(playbackToolbar);
+
+        // Support back button
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
         // The callback for receiving the raw H264 video data for camera live view
         mReceivedVideoDataCallBack = new VideoFeeder.VideoDataCallback() {
@@ -107,6 +119,25 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
         super.onDestroy();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if(menu != null){
+            // Inflate the menu; this adds items to the action bar if it is present.
+            getMenuInflater().inflate(R.menu.menu_detail_flight, menu);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            default:
+                // If we got here, the user's action was not recognized. Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     private void initUI() {
         // init mVideoSurface
         mVideoSurface = (TextureView)findViewById(R.id.video_previewer_surface);
@@ -123,8 +154,12 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
 
         mPreviewBtn1 = (Button) findViewById(R.id.preview_button1);
         mPreviewBtn2 = (Button) findViewById(R.id.preview_button2);
-        mPreviewBtn3 = (Button) findViewById(R.id.preview_button2);
+        mPreviewBtn3 = (Button) findViewById(R.id.preview_button3);
         mPreviewBtn4 = (Button) findViewById(R.id.preview_button4);
+        mPreviewBtn5 = (Button) findViewById(R.id.preview_button5);
+        mPreviewBtn6 = (Button) findViewById(R.id.preview_button6);
+        mPreviewBtn7 = (Button) findViewById(R.id.preview_button7);
+        mPreviewBtn8 = (Button) findViewById(R.id.preview_button8);
 
         if (null != mVideoSurface) {
             mVideoSurface.setSurfaceTextureListener(this);
@@ -144,6 +179,10 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
         mPreviewBtn2.setOnClickListener(this);
         mPreviewBtn3.setOnClickListener(this);
         mPreviewBtn4.setOnClickListener(this);
+        mPreviewBtn5.setOnClickListener(this);
+        mPreviewBtn6.setOnClickListener(this);
+        mPreviewBtn7.setOnClickListener(this);
+        mPreviewBtn8.setOnClickListener(this);
 
         createProgressDialog();
     }
@@ -432,6 +471,22 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
                 previewBtnAction(3);
                 break;
             }
+            case R.id.preview_button5: {
+                previewBtnAction(4);
+                break;
+            }
+            case R.id.preview_button6: {
+                previewBtnAction(5);
+                break;
+            }
+            case R.id.preview_button7: {
+                previewBtnAction(6);
+                break;
+            }
+            case R.id.preview_button8: {
+                previewBtnAction(7);
+                break;
+            }
             case R.id.btn_playback_btn: {
                 switchCameraMode(SettingsDefinitions.CameraMode.PLAYBACK);
                 break;
@@ -467,6 +522,4 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
             });
         }
     }
-
-    //TODO Ajouter 8 boutons pour le mode multiple preview
 }

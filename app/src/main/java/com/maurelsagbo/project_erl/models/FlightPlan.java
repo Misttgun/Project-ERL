@@ -13,12 +13,15 @@ public class FlightPlan {
     @SerializedName("name")
     private String locationName;
 
-    @SerializedName("waypoints")
     private List<WayPoint> wayPoints;
+
+    @SerializedName("waypoints_count")
+    private int numWaypoint;
 
     public FlightPlan(List<WayPoint> wayPoints, String locationName){
         this.locationName = locationName;
         this.wayPoints = new ArrayList<>(wayPoints);
+        this.numWaypoint = wayPoints.size();
     }
 
     public FlightPlan(){
@@ -49,4 +52,11 @@ public class FlightPlan {
         this.id = id;
     }
 
+    public int getNumWaypoint() {
+        return numWaypoint;
+    }
+
+    public void setNumWaypoint(int numWaypoint) {
+        this.numWaypoint = numWaypoint;
+    }
 }

@@ -20,6 +20,6 @@ public class FlightPViewHolder extends RecyclerView.ViewHolder{
 
     public void updateUI(FlightPlan flightPlan){
         locationName.setText(flightPlan.getLocationName());
-        numberWaypoint.setText(flightPlan.getWayPoints().size() + " waypoints");
+        numberWaypoint.setText(flightPlan.getNumWaypoint() + " waypoints");
     }
 }

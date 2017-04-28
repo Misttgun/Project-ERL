@@ -17,6 +17,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -37,7 +38,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static dji.midware.data.manager.P3.ServiceManager.getContext;
@@ -55,6 +55,8 @@ public class FlightPActivity extends AppCompatActivity {
     private Boolean exit = false;
 
     private Gson gson;
+
+    final CharSequence[] items = {"Apprentisage", "Manuelle"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,8 +107,22 @@ public class FlightPActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(FlightPActivity.this, CreateFlightPActivity.class);
-                startActivity(intent);
+                new MaterialDialog.Builder(FlightPActivity.this)
+                        .title("Choisissez une méthode")
+                        .items(items)
+                        .itemsCallback(new MaterialDialog.ListCallback() {
+                            @Override
+                            public void onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
+                                if(which == 0){
+                                    Intent intent = new Intent(FlightPActivity.this, CreateFlightPLearningActivity.class);
+                                    startActivity(intent);
+                                } else {
+                                    Intent intent = new Intent(FlightPActivity.this, CreateFlightPActivity.class);
+                                    startActivity(intent);
+                                }
+                            }
+                        })
+                        .show();
             }
         });
     }
@@ -235,18 +251,35 @@ public class FlightPActivity extends AppCompatActivity {
             @Override
             public void onSuccess(String response) {
                 try {
+                    // Transform the string response to JSON and get the JSON Array with key "flightplans"
                     JSONObject flightPlanJson = new JSONObject(response);
                     JSONArray fpArray = flightPlanJson.getJSONArray("flightplans");
 
                     for(int i = 0; i < fpArray.length(); i++){
+                        // Get the first flight plan JSON Object and get the JSON Array with key "waypoints"
                         JSONObject fpObject = fpArray.getJSONObject(i);
-                        String wpArray = fpObject.getJSONArray("waypoints").toString();
+                        JSONArray wpArray = fpObject.getJSONArray("waypoints");
+
+                        // Transform the flightplan JSON Object to flight plan model and post it to the Database
                         FlightPlan flightPlanTemp = gson.fromJson(fpObject.toString(), FlightPlan.class);
-                        List<WayPoint> waypointTemp = Arrays.asList(gson.fromJson(wpArray, WayPoint[].class));
                         long id = FlightPlanORM.postFlightPlan(context, flightPlanTemp);
+
                         if(id != -1){
-                            for(WayPoint wp : waypointTemp){
-                                WayPointORM.postWaypoint(context,wp,id);
+                            WayPoint wayPoint;
+
+                            for(int j = 0; j < wpArray.length(); j++){
+                                JSONObject wpObject = wpArray.getJSONObject(j);
+                                JSONObject parameters = wpObject.getJSONObject("parameters");
+                                JSONObject coord = parameters.getJSONObject("coord");
+                                JSONObject gimbal = parameters.getJSONObject("gimbal");
+                                int number = wpObject.getInt("number");
+                                double latitude = coord.getDouble("lat");
+                                double longitue = coord.getDouble("lon");
+                                double altitude = coord.getDouble("alt");
+                                double rotation = parameters.getDouble("rotation");
+                                int pitch = gimbal.getInt("pitch");
+                                wayPoint = new WayPoint(number, latitude, longitue, altitude, rotation, pitch);
+                                WayPointORM.postWaypoint(context,wayPoint,id);
                             }
                         }
                     }

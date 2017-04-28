@@ -7,7 +7,6 @@ import java.util.List;
 
 public class FlightPlan {
 
-    @SerializedName("id")
     private long id;
 
     @SerializedName("name")

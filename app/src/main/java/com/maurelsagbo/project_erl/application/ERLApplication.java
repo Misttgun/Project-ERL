@@ -8,6 +8,8 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.facebook.stetho.Stetho;
+
 import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
 import dji.sdk.base.BaseComponent;
@@ -74,6 +76,7 @@ public class ERLApplication extends Application {
 
         //This is used to start SDK services and initiate SDK
         DJISDKManager.getInstance().registerApp(this, mDJISDKManagerCallback);
+        Stetho.initializeWithDefaults(this);
 
     }
 

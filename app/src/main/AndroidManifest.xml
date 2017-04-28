@@ -116,6 +116,7 @@
             android:name=".activities.CreateFlightPLearningActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:screenOrientation="landscape"
+            android:label="Création plan de vol apprentissage"
             android:theme="@style/AppTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -135,6 +136,7 @@
         <activity
             android:name=".activities.PlaybackActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="Gestion des images"
             android:screenOrientation="landscape" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

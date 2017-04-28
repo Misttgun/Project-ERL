@@ -63,7 +63,6 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     private GoogleMap gMap;
 
     private float mSpeed = 5f;
-    private float mAltitude = 12f;
 
     private double droneLocationLat, droneLocationLng;
     private Marker droneMarker = null;
@@ -75,7 +74,6 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     private WaypointMissionHeadingMode mHeadingMode = WaypointMissionHeadingMode.AUTO;
 
     private WaypointAction photoAction = new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 2);
-    private WaypointAction gimbalAction = new WaypointAction(WaypointActionType.GIMBAL_PITCH, 0);
 
     private List<WayPoint> waypoints;
 
@@ -344,8 +342,8 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         // Transform the current waypoints in DJI format and add them to a list
         List<Waypoint> djiWaypoints = new ArrayList<>();
         for(WayPoint wp : waypoints){
-            Waypoint mWaypoint = new Waypoint(wp.getLatitude(), wp.getLongitude(), mAltitude);
-            mWaypoint.addAction(gimbalAction);
+            Waypoint mWaypoint = new Waypoint(wp.getLatitude(), wp.getLongitude(), (float)wp.getAltitude());
+            mWaypoint.addAction(new WaypointAction(WaypointActionType.GIMBAL_PITCH, wp.getGimbalPitch()));
             mWaypoint.addAction(photoAction);
             djiWaypoints.add(mWaypoint);
         }

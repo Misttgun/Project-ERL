@@ -73,7 +73,7 @@ public class FlightPlanORM {
 
         Cursor cursor = database.rawQuery("SELECT * FROM " + FlightPlanORM.TABLE_NAME + " WHERE id = " + id, null);
 
-        Log.i(TAG, "Loaded " + cursor.getCount() + " flight plan...");
+        Log.i(TAG, "Loaded flight plan with ID: " + id);
 
         FlightPlan flightPlan = new FlightPlan();
 

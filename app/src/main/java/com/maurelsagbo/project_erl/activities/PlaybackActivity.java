@@ -192,7 +192,7 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
         BaseProduct product = ERLApplication.getProductInstance();
 
         if (product == null || !product.isConnected()) {
-            showToast(getString(R.string.disconnected));
+            showToast("Aircraft is disconnected");
         } else {
             if (null != mVideoSurface) {
                 mVideoSurface.setSurfaceTextureListener(this);

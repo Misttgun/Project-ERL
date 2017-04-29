@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -54,9 +55,9 @@ public class FlightPActivity extends AppCompatActivity {
     // Check if we can exit the application
     private Boolean exit = false;
 
-    private Gson gson;
+    private static Gson gson;
 
-    final CharSequence[] items = {"Apprentisage", "Manuelle"};
+    final CharSequence[] items = {"Apprentissage", "Manuelle"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,6 +126,18 @@ public class FlightPActivity extends AppCompatActivity {
                         .show();
             }
         });
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        updateFlightPlanList();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateFlightPlanList();
     }
 
     @Override
@@ -222,10 +235,10 @@ public class FlightPActivity extends AppCompatActivity {
 //    }
 
     /**
-     * Method which download all the Flight Plan and Waypoints associated from the server
+     * Method which download all the Flight Plans and Waypoints associated from the server
      * @param callback
      */
-    private void downloadFlightPlan(final StringRequestCallback callback){
+    private void downloadAllFlightPlans(final StringRequestCallback callback){
         StringRequest requestFP = new StringRequest(Request.Method.GET,"http://vps361908.ovh.net/dev/elittoral/api/flightplans/dump",
                 new Response.Listener<String>() {
                     @Override
@@ -239,6 +252,12 @@ public class FlightPActivity extends AppCompatActivity {
             }
         });
 
+        // Add a timeout of 1 minute for the request
+        requestFP.setRetryPolicy(new DefaultRetryPolicy(
+                60000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
         MySingleton.getInstance(this).getRequestQueue().add(requestFP);
     }
 
@@ -247,7 +266,7 @@ public class FlightPActivity extends AppCompatActivity {
      * @param context
      */
     private void populateSQLite(final Context context){
-        downloadFlightPlan(new StringRequestCallback() {
+        downloadAllFlightPlans(new StringRequestCallback() {
             @Override
             public void onSuccess(String response) {
                 try {
@@ -258,30 +277,7 @@ public class FlightPActivity extends AppCompatActivity {
                     for(int i = 0; i < fpArray.length(); i++){
                         // Get the first flight plan JSON Object and get the JSON Array with key "waypoints"
                         JSONObject fpObject = fpArray.getJSONObject(i);
-                        JSONArray wpArray = fpObject.getJSONArray("waypoints");
-
-                        // Transform the flightplan JSON Object to flight plan model and post it to the Database
-                        FlightPlan flightPlanTemp = gson.fromJson(fpObject.toString(), FlightPlan.class);
-                        long id = FlightPlanORM.postFlightPlan(context, flightPlanTemp);
-
-                        if(id != -1){
-                            WayPoint wayPoint;
-
-                            for(int j = 0; j < wpArray.length(); j++){
-                                JSONObject wpObject = wpArray.getJSONObject(j);
-                                JSONObject parameters = wpObject.getJSONObject("parameters");
-                                JSONObject coord = parameters.getJSONObject("coord");
-                                JSONObject gimbal = parameters.getJSONObject("gimbal");
-                                int number = wpObject.getInt("number");
-                                double latitude = coord.getDouble("lat");
-                                double longitue = coord.getDouble("lon");
-                                double altitude = coord.getDouble("alt");
-                                double rotation = parameters.getDouble("rotation");
-                                int pitch = gimbal.getInt("pitch");
-                                wayPoint = new WayPoint(number, latitude, longitue, altitude, rotation, pitch);
-                                WayPointORM.postWaypoint(context,wayPoint,id);
-                            }
-                        }
+                        postFlightPlanToBDD(fpObject.toString(), context);
                     }
 
                     Log.i(TAG, "Dissimulation de la progress bar");
@@ -294,5 +290,39 @@ public class FlightPActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    /**
+     * Method which take a flight plan json object and post it to the database
+     * @param json
+     * @param context
+     * @throws JSONException
+     */
+    public static void postFlightPlanToBDD(String json, Context context) throws JSONException {
+        JSONObject fpObject = new JSONObject(json);
+        JSONArray wpArray = fpObject.getJSONArray("waypoints");
+
+        // Transform the flightplan JSON Object to flight plan model and post it to the Database
+        FlightPlan flightPlanTemp = gson.fromJson(fpObject.toString(), FlightPlan.class);
+        long id = FlightPlanORM.postFlightPlan(context, flightPlanTemp);
+
+        if(id != -1){
+            WayPoint wayPoint;
+
+            for(int j = 0; j < wpArray.length(); j++){
+                JSONObject wpObject = wpArray.getJSONObject(j);
+                JSONObject parameters = wpObject.getJSONObject("parameters");
+                JSONObject coord = parameters.getJSONObject("coord");
+                JSONObject gimbal = parameters.getJSONObject("gimbal");
+                int number = wpObject.getInt("number");
+                double latitude = coord.getDouble("lat");
+                double longitue = coord.getDouble("lon");
+                double altitude = coord.getDouble("alt");
+                double rotation = parameters.getDouble("rotation");
+                int pitch = gimbal.getInt("pitch");
+                wayPoint = new WayPoint(number, latitude, longitue, altitude, rotation, pitch);
+                WayPointORM.postWaypoint(context,wayPoint,id);
+            }
+        }
     }
 }

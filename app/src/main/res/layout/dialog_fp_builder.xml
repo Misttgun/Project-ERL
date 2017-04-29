@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="32dp"
-    android:layout_marginRight="64dp"
+    android:layout_marginLeft="8dp"
+    android:layout_marginRight="8dp"
     android:orientation="vertical">
 
     <LinearLayout
@@ -14,7 +14,6 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/dialog_pitch"
             android:layout_width="125dp"
             android:layout_height="35dp"
             android:layout_marginLeft="8dp"
@@ -23,14 +22,34 @@
             android:text="Gimbal Pitch"
             android:textSize="18sp" />
 
-        <EditText
-            android:id="@+id/pitch_value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="8dp"
-            android:layout_weight="0.5"
-            android:ems="10"
-            android:inputType="numberSigned" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:orientation="horizontal">
+
+            <com.crystal.crystalrangeseekbar.widgets.CrystalSeekbar
+                android:id="@+id/gimbal_seekbar"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                app:bar_color="#C69E89"
+                app:bar_highlight_color="#A54B17"
+                app:corner_radius="10"
+                app:data_type="_integer"
+                app:max_value="90"
+                app:min_value="0"
+                app:steps="5" />
+
+            <TextView
+                android:id="@+id/gimbal_value"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_weight="1"
+                android:text="0"
+                android:textSize="18sp" />
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -41,7 +60,6 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/dialog_hinc"
             android:layout_width="125dp"
             android:layout_height="35dp"
             android:layout_marginLeft="8dp"
@@ -50,14 +68,34 @@
             android:text="H Increment"
             android:textSize="18sp" />
 
-        <EditText
-            android:id="@+id/hinc_value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="8dp"
-            android:layout_weight="0.5"
-            android:ems="10"
-            android:inputType="numberSigned" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:orientation="horizontal">
+
+            <com.crystal.crystalrangeseekbar.widgets.CrystalSeekbar
+                android:id="@+id/hinc_seekbar"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                app:bar_color="#C69E89"
+                app:bar_highlight_color="#A54B17"
+                app:corner_radius="10"
+                app:data_type="_integer"
+                app:max_value="15"
+                app:min_value="5"
+                app:steps="1" />
+
+            <TextView
+                android:id="@+id/hinc_value"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_weight="1"
+                android:text="5"
+                android:textSize="18sp" />
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -68,7 +106,6 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/dialog_vinc"
             android:layout_width="125dp"
             android:layout_height="35dp"
             android:layout_marginLeft="8dp"
@@ -77,14 +114,34 @@
             android:text="V Increment"
             android:textSize="18sp" />
 
-        <EditText
-            android:id="@+id/vinc_value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="8dp"
-            android:layout_weight="0.5"
-            android:ems="10"
-            android:inputType="numberSigned" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:orientation="horizontal">
+
+            <com.crystal.crystalrangeseekbar.widgets.CrystalSeekbar
+                android:id="@+id/vinc_seekbar"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                app:bar_color="#C69E89"
+                app:bar_highlight_color="#A54B17"
+                app:corner_radius="10"
+                app:data_type="_integer"
+                app:max_value="5"
+                app:min_value="1"
+                app:steps="1" />
+
+            <TextView
+                android:id="@+id/vinc_value"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_weight="1"
+                android:text="1"
+                android:textSize="18sp" />
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -109,7 +166,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="8dp"
-            android:layout_weight="0.5"
+            android:layout_weight="0"
             android:ems="10"
             android:inputType="textPersonName" />
 

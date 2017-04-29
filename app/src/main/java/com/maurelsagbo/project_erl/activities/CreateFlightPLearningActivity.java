@@ -7,7 +7,9 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.InputFilter;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.TextureView;
@@ -15,16 +17,29 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.crystal.crystalrangeseekbar.interfaces.OnSeekbarChangeListener;
+import com.crystal.crystalrangeseekbar.widgets.CrystalSeekbar;
 import com.maurelsagbo.project_erl.R;
 import com.maurelsagbo.project_erl.application.ERLApplication;
 import com.maurelsagbo.project_erl.models.WayPoint;
-import com.maurelsagbo.project_erl.utilities.InputFilterMax;
-import com.maurelsagbo.project_erl.utilities.OnFocusChangeListenerMin;
+import com.maurelsagbo.project_erl.utilities.MySingleton;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import dji.common.flightcontroller.FlightControllerState;
 import dji.common.product.Model;
@@ -48,7 +63,6 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
     private Button mConfigFP, mAddWaypoint, mClearFP;
 
     private List<WayPoint> waypoints = new ArrayList<>();
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,9 +145,11 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
             mCodecManager = new DJICodecManager(this, surface, width, height);
         }
     }
+
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
     }
+
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
         Log.e(TAG,"onSurfaceTextureDestroyed");
@@ -144,6 +160,7 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
 
         return false;
     }
+
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
     }
@@ -160,6 +177,7 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
         }
 
         mConfigFP.setOnClickListener(this);
+        // TODO Désactiver le bouton config par défaut
         //mConfigFP.setEnabled(false);
         mAddWaypoint.setOnClickListener(this);
         mClearFP.setOnClickListener(this);
@@ -208,6 +226,7 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
             }
         }
     }
+
     private void uninitPreviewer() {
         Camera camera = ERLApplication.getCameraInstance();
         if (camera != null){
@@ -254,34 +273,186 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
 
     private void showConfigDialog(){
         LinearLayout fPSettings = (LinearLayout)getLayoutInflater().inflate(R.layout.dialog_fp_builder, null);
-        EditText name = (EditText)fPSettings.findViewById(R.id.name_value);
+        final EditText name = (EditText)fPSettings.findViewById(R.id.name_value);
 
-        EditText pitch = (EditText)fPSettings.findViewById(R.id.pitch_value);
-        pitch.setFilters(new InputFilter[]{ new InputFilterMax(CreateFlightPLearningActivity.this, "90")});
-        pitch.setOnFocusChangeListener(new OnFocusChangeListenerMin(getApplicationContext(), 0));
+        final TextView pitchValue = (TextView)fPSettings.findViewById(R.id.gimbal_value);
+        final TextView hincValue = (TextView)fPSettings.findViewById(R.id.hinc_value);
+        final TextView vincValue = (TextView)fPSettings.findViewById(R.id.vinc_value);
 
-        EditText vinc = (EditText)fPSettings.findViewById(R.id.vinc_value);
-        vinc.setFilters(new InputFilter[]{ new InputFilterMax(CreateFlightPLearningActivity.this, "5")});
-        vinc.setOnFocusChangeListener(new OnFocusChangeListenerMin(getApplicationContext(), 1));
+        CrystalSeekbar pitchSeekBar = (CrystalSeekbar) fPSettings.findViewById(R.id.gimbal_seekbar);
+        CrystalSeekbar hincSeekBar = (CrystalSeekbar)fPSettings.findViewById(R.id.hinc_seekbar);
+        CrystalSeekbar vincSeekBar = (CrystalSeekbar)fPSettings.findViewById(R.id.vinc_seekbar);
 
-        EditText hinc = (EditText)fPSettings.findViewById(R.id.hinc_value);
-        hinc.setFilters(new InputFilter[]{ new InputFilterMax(CreateFlightPLearningActivity.this, "15")});
-        hinc.setOnFocusChangeListener(new OnFocusChangeListenerMin(getApplicationContext(), 5));
+        // Set seekbar listeners
+        pitchSeekBar.setOnSeekbarChangeListener(new OnSeekbarChangeListener() {
+            @Override
+            public void valueChanged(Number value) {
+                pitchValue.setText(String.valueOf(value));
+            }
+        });
 
-        new AlertDialog.Builder(this)
-                .setTitle("")
+        hincSeekBar.setOnSeekbarChangeListener(new OnSeekbarChangeListener() {
+            @Override
+            public void valueChanged(Number value) {
+                hincValue.setText(String.valueOf(value));
+            }
+        });
+
+        vincSeekBar.setOnSeekbarChangeListener(new OnSeekbarChangeListener() {
+            @Override
+            public void valueChanged(Number value) {
+                vincValue.setText(String.valueOf(value));
+            }
+        });
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("")
                 .setView(fPSettings)
                 .setPositiveButton("Valider",new DialogInterface.OnClickListener(){
                     public void onClick(DialogInterface dialog, int id) {
+                        JSONObject jsonBody = createFlightPlanJson(name.getText().toString().trim(),
+                                Integer.parseInt(hincValue.getText().toString()),
+                                Integer.parseInt(vincValue.getText().toString()),
+                                Integer.parseInt(pitchValue.getText().toString()));
+                        postFlightPlanString(jsonBody);
                     }
                 })
                 .setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
                     }
-                })
-                .create()
-                .show();
+                });
+
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+
+        // If the name is empty, the positive button will stay disabled
+        name.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (TextUtils.isEmpty(s)) {
+                    // Disable ok button
+                    (dialog).getButton(
+                            AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                } else {
+                    // Something into edit text. Enable the button.
+                    (dialog).getButton(
+                            AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                }
+            }
+        });
+    }
+
+    /**
+     * Method which help creates the json before posting to the server
+     * @param fpName
+     * @param horizontalInc
+     * @param verticalInc
+     * @param gimbalPitch
+     * @return the JSON in string format
+     */
+    private JSONObject createFlightPlanJson(String fpName, int horizontalInc, int verticalInc, int gimbalPitch){
+        // Create all the JSONObject
+        JSONObject body = new JSONObject();
+        JSONObject gimbalObject = new JSONObject();
+        JSONObject coord1Object = new JSONObject();
+        JSONObject coord2Object = new JSONObject();
+
+        try{
+            // Working on the Gimbal JSONObject
+            gimbalObject.put("yaw", 0);
+            gimbalObject.put("roll", 0);
+            gimbalObject.put("pitch", gimbalPitch);
+
+            // TODO Modifier les coordonnée pour utiliser ceux du drone
+            // Working on the Coord1 JSONObject
+            coord1Object.put("lon", 3.059814);
+            coord1Object.put("lat", 50.631579);
+
+            // Working on the Coord2 JSONObject
+            coord2Object.put("lon", 3.060684);
+            coord2Object.put("lat", 50.632217);
+
+            // Working on the Body JSONObject
+            body.put("alt_end", 5);
+            body.put("alt_start", 5);
+            body.put("d_gimbal", gimbalObject);
+            // TODO Modifier la rotation pour utiliser celle du drone
+            body.put("d_rotation", 0);
+            body.put("coord1", coord1Object);
+            body.put("v_increment", verticalInc);
+            body.put("coord2", coord2Object);
+            body.put("h_increment", horizontalInc);
+            body.put("save", true);
+            body.put("flightplan_name", fpName);
+
+            // Return the body request string
+            return body;
+        }catch (JSONException e) {
+            Log.d(TAG, "Erreur de JSON");
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void postFlightPlanString(final JSONObject body){
+        String url = "http://vps361908.ovh.net/dev/elittoral/api/flightplans/build";
+        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, body,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try{
+//                            new MaterialDialog.Builder(CreateFlightPLearningActivity.this)
+//                                    .title(R.string.progress_dialog)
+//                                    .content(R.string.please_wait)
+//                                    .progress(true, 0)
+//                                    .show();
+                            FlightPActivity.postFlightPlanToBDD(response.toString(), CreateFlightPLearningActivity.this);
+                        }catch (JSONException e){
+                            e.printStackTrace();
+                        }
+
+                        onBackPressed();
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        //error.printStackTrace();
+                        String json;
+
+                        NetworkResponse response = error.networkResponse;
+                        if(response != null && response.data != null){
+                            switch(response.statusCode){
+                                case 400:
+                                    json = new String(response.data);
+                                    if(json != null) Log.e(TAG,json);
+                                    break;
+                            }
+                            //Additional cases
+                        }
+                    }
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String>  headers = new HashMap<>();
+                headers.put("Content-Type", "application/json; charset=utf-8");
+                return headers;
+            }
+        };
+
+        MySingleton.getInstance(this).getRequestQueue().add(postRequest);
     }
 
     public void showToast(final String msg) {

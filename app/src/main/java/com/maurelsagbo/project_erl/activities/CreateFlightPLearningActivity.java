@@ -177,8 +177,7 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
         }
 
         mConfigFP.setOnClickListener(this);
-        // TODO Désactiver le bouton config par défaut
-        //mConfigFP.setEnabled(false);
+        mConfigFP.setEnabled(false);
         mAddWaypoint.setOnClickListener(this);
         mClearFP.setOnClickListener(this);
     }
@@ -202,6 +201,9 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
                 waypoints.clear();
                 if(mConfigFP.isEnabled()){
                     mConfigFP.setEnabled(false);
+                }
+                if(!mAddWaypoint.isEnabled()){
+                    mAddWaypoint.setEnabled(true);
                 }
             }
             default:
@@ -252,22 +254,11 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
 
             waypoints.add(wayPoint);
             showToast(wayPoint.toString());
-
-//            mFlightController.setStateCallback(new FlightControllerState.Callback() {
-//                WayPoint wayPoint;
-//                @Override
-//                public void onUpdate(FlightControllerState djiFlightControllerCurrentState) {
-//                    wayPoint.setLatitude(djiFlightControllerCurrentState.getAircraftLocation().getLatitude());
-//                    wayPoint.setLongitude(djiFlightControllerCurrentState.getAircraftLocation().getLongitude());
-//                    wayPoint.setAltitude(djiFlightControllerCurrentState.getAircraftLocation().getAltitude());
-//                    wayPoint.setRotation(djiFlightControllerCurrentState.getAttitude().yaw);
-//                }
-//            });
-
         }
 
         if(waypoints.size() == 2){
             mConfigFP.setEnabled(true);
+            mAddWaypoint.setEnabled(false);
         }
     }
 
@@ -374,21 +365,19 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
             gimbalObject.put("roll", 0);
             gimbalObject.put("pitch", gimbalPitch);
 
-            // TODO Modifier les coordonnée pour utiliser ceux du drone
             // Working on the Coord1 JSONObject
-            coord1Object.put("lon", 3.059814);
-            coord1Object.put("lat", 50.631579);
+            coord1Object.put("lon", waypoints.get(0).getLongitude());
+            coord1Object.put("lat", waypoints.get(0).getLatitude());
 
             // Working on the Coord2 JSONObject
-            coord2Object.put("lon", 3.060684);
-            coord2Object.put("lat", 50.632217);
+            coord2Object.put("lon", waypoints.get(1).getLongitude());
+            coord2Object.put("lat", waypoints.get(1).getLatitude());
 
             // Working on the Body JSONObject
             body.put("alt_end", 5);
             body.put("alt_start", 5);
             body.put("d_gimbal", gimbalObject);
-            // TODO Modifier la rotation pour utiliser celle du drone
-            body.put("d_rotation", 0);
+            body.put("d_rotation", waypoints.get(0).getRotation());
             body.put("coord1", coord1Object);
             body.put("v_increment", verticalInc);
             body.put("coord2", coord2Object);
@@ -412,11 +401,6 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
                     @Override
                     public void onResponse(JSONObject response) {
                         try{
-//                            new MaterialDialog.Builder(CreateFlightPLearningActivity.this)
-//                                    .title(R.string.progress_dialog)
-//                                    .content(R.string.please_wait)
-//                                    .progress(true, 0)
-//                                    .show();
                             FlightPActivity.postFlightPlanToBDD(response.toString(), CreateFlightPLearningActivity.this);
                         }catch (JSONException e){
                             e.printStackTrace();

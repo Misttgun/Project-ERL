@@ -44,7 +44,7 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
     protected DJICodecManager mCodecManager = null;
     protected TextureView mVideoSurface = null;
 
-    private Button mPreviousBtn, mNextBtn, mSelectBtn, mSelectAllBtn, mPlayBackBtn;
+    private Button mPreviousBtn, mNextBtn, mSelectBtn, mSelectAllBtn, mPlayBackBtn, mFpvBtn;
     private Button mSingleBtn, mMultipleBtn, mDownloadBtn, mDeleteBtn;
     private Button mPreviewBtn1, mPreviewBtn2, mPreviewBtn3, mPreviewBtn4, mPreviewBtn5, mPreviewBtn6, mPreviewBtn7, mPreviewBtn8;
 
@@ -151,6 +151,7 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
         mDownloadBtn = (Button) findViewById(R.id.btn_download_btn);
         mPreviousBtn = (Button) findViewById(R.id.btn_previous_btn);
         mNextBtn = (Button) findViewById(R.id.btn_next_btn);
+        mFpvBtn = (Button) findViewById(R.id.btn_fpv_btn);
 
         mPreviewBtn1 = (Button) findViewById(R.id.preview_button1);
         mPreviewBtn2 = (Button) findViewById(R.id.preview_button2);
@@ -174,6 +175,7 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
         mDownloadBtn.setOnClickListener(this);
         mPreviousBtn.setOnClickListener(this);
         mNextBtn.setOnClickListener(this);
+        mFpvBtn.setOnClickListener(this);
 
         mPreviewBtn1.setOnClickListener(this);
         mPreviewBtn2.setOnClickListener(this);
@@ -491,6 +493,9 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
                 switchCameraMode(SettingsDefinitions.CameraMode.PLAYBACK);
                 break;
             }
+            case R.id.btn_fpv_btn: {
+                switchCameraMode(SettingsDefinitions.CameraMode.SHOOT_PHOTO);
+            }
             default:
                 break;
         }
@@ -507,12 +512,10 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
     }
 
     private void switchCameraMode(SettingsDefinitions.CameraMode cameraMode){
-
         if (mCamera != null) {
             mCamera.setMode(cameraMode, new CommonCallbacks.CompletionCallback() {
                 @Override
                 public void onResult(DJIError djiError) {
-
                     if (djiError == null) {
                         showToast("Switch Camera Mode Succeeded");
                     } else {

@@ -31,41 +31,53 @@
 
                         <Button
                             android:id="@+id/add_btn"
-                            android:layout_width="100dp"
-                            android:layout_height="wrap_content"
-                            android:text="Add"
-                            android:background="@android:color/holo_orange_light"
-                            android:textColor="@android:color/white"
-                            android:textStyle="normal|bold"
+                            android:layout_width="80dp"
+                            android:layout_height="40dp"
                             android:layout_alignParentRight="true"
                             android:layout_alignParentTop="false"
-                            android:layout_margin="10dp" />
+                            android:layout_margin="10dp"
+                            android:background="@android:color/holo_orange_light"
+                            android:text="Add"
+                            android:textColor="@android:color/white"
+                            android:textStyle="normal|bold" />
 
                         <Button
                             android:id="@+id/clear_btn"
-                            android:layout_width="100dp"
-                            android:layout_height="wrap_content"
-                            android:text="Clear"
-                            android:background="@android:color/holo_orange_light"
-                            android:textColor="@android:color/white"
-                            android:textStyle="normal|bold"
-                            android:layout_below="@+id/add_btn"
+                            android:layout_width="80dp"
+                            android:layout_height="40dp"
                             android:layout_alignParentRight="true"
-                            android:layout_marginTop="10dp"
+                            android:layout_below="@+id/add_btn"
+                            android:layout_marginBottom="10dp"
                             android:layout_marginRight="10dp"
-                            android:layout_marginBottom="10dp" />
+                            android:layout_marginTop="10dp"
+                            android:background="@android:color/holo_orange_light"
+                            android:text="Clear"
+                            android:textColor="@android:color/white"
+                            android:textStyle="normal|bold" />
+
+                        <Button
+                            android:id="@+id/btn_locate_btn"
+                            android:layout_width="80dp"
+                            android:layout_height="40dp"
+                            android:layout_alignParentRight="true"
+                            android:layout_below="@+id/clear_btn"
+                            android:layout_margin="10dp"
+                            android:background="@android:color/holo_orange_light"
+                            android:text="Locate"
+                            android:textColor="@android:color/white"
+                            android:textStyle="normal|bold" />
 
                         <Button
                             android:id="@+id/save_btn"
-                            android:layout_width="100dp"
-                            android:layout_height="wrap_content"
-                            android:text="Save"
-                            android:background="@android:color/holo_orange_light"
-                            android:textColor="@android:color/white"
-                            android:textStyle="normal|bold"
-                            android:layout_below="@+id/clear_btn"
+                            android:layout_width="80dp"
+                            android:layout_height="40dp"
                             android:layout_alignParentRight="true"
-                            android:layout_margin="10dp" />
+                            android:layout_below="@+id/btn_locate_btn"
+                            android:layout_margin="10dp"
+                            android:background="@android:color/holo_orange_light"
+                            android:text="Save"
+                            android:textColor="@android:color/white"
+                            android:textStyle="normal|bold" />
 
                 </RelativeLayout>
 

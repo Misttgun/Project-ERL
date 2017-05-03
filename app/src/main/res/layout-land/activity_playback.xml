@@ -14,62 +14,12 @@
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme" />
 
-    <LinearLayout
-        android:id="@+id/layout1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/playback_toolbar"
-        android:background="@android:color/darker_gray"
-        android:orientation="horizontal"
-        android:weightSum="4">
-
-        <Button
-            android:id="@+id/btn_previous_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="Previous"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/btn_next_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="Next"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/btn_select_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="Select"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/btn_select_all_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="Select All"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/btn_playback_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="PlayBack Mode" />
-
-    </LinearLayout>
-
     <TextureView
         android:id="@+id/video_previewer_surface"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/linearLayout"
-        android:layout_below="@+id/layout1"
+        android:layout_above="@+id/layout1"
+        android:layout_below="@+id/playback_toolbar"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
         android:layout_weight="1" />
@@ -77,8 +27,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/linearLayout"
-        android:layout_below="@+id/layout1"
+        android:layout_above="@+id/layout1"
+        android:layout_below="@+id/playback_toolbar"
         android:layout_weight="1"
         android:orientation="horizontal"
         android:weightSum="4">
@@ -212,52 +162,39 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/linearLayout"
+        android:id="@+id/layout1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="false"
         android:background="@android:color/darker_gray"
         android:orientation="horizontal"
-        android:weightSum="4">
+        android:weightSum="3">
 
         <Button
-            android:id="@+id/btn_download_btn"
+            android:id="@+id/btn_previous_btn"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="Download"
+            android:text="Previous"
             android:textSize="14sp" />
 
         <Button
-            android:id="@+id/btn_delete_btn"
+            android:id="@+id/btn_next_btn"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="Delete"
+            android:text="Next"
             android:textSize="14sp" />
 
-        <Button
-            android:id="@+id/btn_single_btn"
+        <ToggleButton
+            android:id="@+id/btn_preview_btn"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="Single"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/btn_multi_pre_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="Multiple"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/btn_fpv_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="FPV Mode" />
+            android:text="ToggleButton"
+            android:textOff="Multiple"
+            android:textOn="Single" />
 
     </LinearLayout>
 

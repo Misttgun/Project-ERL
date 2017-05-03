@@ -36,38 +36,50 @@
                         android:layout_alignParentBottom="true">
 
                         <Button
-                                android:id="@+id/add_btn"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="Add"
-                                android:layout_weight="1"
-                                android:layout_marginLeft="10dp"
-                                android:background="@android:color/holo_orange_light"
-                                android:textColor="@android:color/white"
-                                android:textStyle="normal|bold" />
+                            android:id="@+id/add_btn"
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:layout_marginLeft="8dp"
+                            android:layout_weight="1"
+                            android:background="@android:color/holo_orange_light"
+                            android:text="Add"
+                            android:textColor="@android:color/white"
+                            android:textStyle="normal|bold" />
 
                         <Button
-                                android:id="@+id/clear_btn"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="Clear"
-                                android:layout_weight="1"
-                                android:layout_marginLeft="10dp"
-                                android:background="@android:color/holo_orange_light"
-                                android:textColor="@android:color/white"
-                                android:textStyle="normal|bold" />
+                            android:id="@+id/clear_btn"
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:layout_marginLeft="8dp"
+                            android:layout_weight="1"
+                            android:background="@android:color/holo_orange_light"
+                            android:text="Clear"
+                            android:textColor="@android:color/white"
+                            android:textStyle="normal|bold" />
+
+                        <Button
+                            android:id="@+id/btn_locate_btn"
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:layout_marginLeft="8dp"
+                            android:layout_weight="1"
+                            android:background="@android:color/holo_orange_light"
+                            android:text="Locate"
+                            android:textColor="@android:color/white"
+                            android:textStyle="normal|bold" />
 
                         <Button
                             android:id="@+id/save_btn"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Save"
+                            android:layout_height="40dp"
+                            android:layout_marginLeft="8dp"
+                            android:layout_marginRight="8dp"
                             android:layout_weight="1"
-                            android:layout_marginLeft="10dp"
                             android:background="@android:color/holo_orange_light"
+                            android:text="Save"
                             android:textColor="@android:color/white"
-                            android:textStyle="normal|bold"
-                            android:layout_marginRight="10dp" />
+                            android:textStyle="normal|bold" />
+
                     </LinearLayout>
                 </RelativeLayout>
 

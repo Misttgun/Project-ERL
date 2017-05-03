@@ -33,7 +33,7 @@ public class CreateFlightPActivity extends AppCompatActivity implements View.OnC
     protected static final String TAG = "CreateFlightPActivity";
 
     private GoogleMap gMap;
-    private Button save, add, clear;
+    private Button save, add, clear, locate;
 
     private boolean isAdd = false;
     List<WayPoint> waypoints = new ArrayList<>();
@@ -121,11 +121,13 @@ public class CreateFlightPActivity extends AppCompatActivity implements View.OnC
         save = (Button) findViewById(R.id.save_btn);
         add = (Button) findViewById(R.id.add_btn);
         clear = (Button) findViewById(R.id.clear_btn);
+        locate = (Button) findViewById(R.id.btn_locate_btn);
 
         // Set on click listener
         save.setOnClickListener(this);
         add.setOnClickListener(this);
         clear.setOnClickListener(this);
+        locate.setOnClickListener(this);
     }
 
     /**

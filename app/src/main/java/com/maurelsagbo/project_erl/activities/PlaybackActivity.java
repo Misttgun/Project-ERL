@@ -1,11 +1,7 @@
 package com.maurelsagbo.project_erl.activities;
 
-import android.app.ProgressDialog;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -15,12 +11,12 @@ import android.view.MenuItem;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.maurelsagbo.project_erl.R;
 import com.maurelsagbo.project_erl.application.ERLApplication;
-
-import java.io.File;
 
 import dji.common.camera.SettingsDefinitions;
 import dji.common.error.DJIError;
@@ -44,13 +40,9 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
     protected DJICodecManager mCodecManager = null;
     protected TextureView mVideoSurface = null;
 
-    private Button mPreviousBtn, mNextBtn, mSelectBtn, mSelectAllBtn, mPlayBackBtn, mFpvBtn;
-    private Button mSingleBtn, mMultipleBtn, mDownloadBtn, mDeleteBtn;
+    private Button mPreviousBtn, mNextBtn;
     private Button mPreviewBtn1, mPreviewBtn2, mPreviewBtn3, mPreviewBtn4, mPreviewBtn5, mPreviewBtn6, mPreviewBtn7, mPreviewBtn8;
-
-    private final int SHOWTOAST = 1;
-    private final int SHOW_DOWNLOAD_PROGRESS_DIALOG = 2;
-    private final int HIDE_DOWNLOAD_PROGRESS_DIALOG = 3;
+    private ToggleButton mPreviewModeBtn;
 
     private boolean isSinglePreview = true;
     private PlaybackState mPlaybackState;
@@ -71,19 +63,6 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
         // Support back button
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
-
-        // The callback for receiving the raw H264 video data for camera live view
-        mReceivedVideoDataCallBack = new VideoFeeder.VideoDataCallback() {
-
-            @Override
-            public void onReceive(byte[] videoBuffer, int size) {
-                if (mCodecManager != null) {
-                    mCodecManager.sendDataToDecoder(videoBuffer, size);
-                }else {
-                    Log.e(TAG, "mCodecManager is null");
-                }
-            }
-        };
     }
 
     @Override
@@ -105,6 +84,7 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
     public void onStop() {
         Log.e(TAG, "onStop");
         super.onStop();
+        switchCameraMode(SettingsDefinitions.CameraMode.SHOOT_PHOTO);
         uninitPreviewer();
     }
 
@@ -142,16 +122,30 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
         // init mVideoSurface
         mVideoSurface = (TextureView)findViewById(R.id.video_previewer_surface);
 
-        mPlayBackBtn = (Button) findViewById(R.id.btn_playback_btn);
-        mSingleBtn = (Button) findViewById(R.id.btn_single_btn);
-        mMultipleBtn = (Button) findViewById(R.id.btn_multi_pre_btn);
-        mSelectBtn = (Button) findViewById(R.id.btn_select_btn);
-        mSelectAllBtn = (Button) findViewById(R.id.btn_select_all_btn);
-        mDeleteBtn = (Button) findViewById(R.id.btn_delete_btn);
-        mDownloadBtn = (Button) findViewById(R.id.btn_download_btn);
         mPreviousBtn = (Button) findViewById(R.id.btn_previous_btn);
         mNextBtn = (Button) findViewById(R.id.btn_next_btn);
-        mFpvBtn = (Button) findViewById(R.id.btn_fpv_btn);
+
+        // Get the Preview Toggle Button and set on check listener
+        mPreviewModeBtn = (ToggleButton) findViewById(R.id.btn_preview_btn);
+        mPreviewModeBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    if(!isSinglePreview)
+                        mCamera.getPlaybackManager().enterSinglePreviewModeWithIndex(0);
+                }else{
+                    if (isSinglePreview)
+                        mCamera.getPlaybackManager().enterMultiplePreviewMode();
+                }
+            }
+        });
+
+        // Change the toggle status if we are in single preview or not
+        if(isSinglePreview){
+            mPreviewModeBtn.setChecked(true);
+        }else{
+            mPreviewModeBtn.setChecked(false);
+        }
 
         mPreviewBtn1 = (Button) findViewById(R.id.preview_button1);
         mPreviewBtn2 = (Button) findViewById(R.id.preview_button2);
@@ -166,16 +160,8 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
             mVideoSurface.setSurfaceTextureListener(this);
         }
 
-        mPlayBackBtn.setOnClickListener(this);
-        mSingleBtn.setOnClickListener(this);
-        mMultipleBtn.setOnClickListener(this);
-        mSelectBtn.setOnClickListener(this);
-        mSelectAllBtn.setOnClickListener(this);
-        mDeleteBtn.setOnClickListener(this);
-        mDownloadBtn.setOnClickListener(this);
         mPreviousBtn.setOnClickListener(this);
         mNextBtn.setOnClickListener(this);
-        mFpvBtn.setOnClickListener(this);
 
         mPreviewBtn1.setOnClickListener(this);
         mPreviewBtn2.setOnClickListener(this);
@@ -185,8 +171,6 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
         mPreviewBtn6.setOnClickListener(this);
         mPreviewBtn7.setOnClickListener(this);
         mPreviewBtn8.setOnClickListener(this);
-
-        createProgressDialog();
     }
 
     private void initPreviewer() {
@@ -201,6 +185,12 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
             }
 
             mCamera = product.getCamera();
+
+            // Set the preview mode to multiple
+            mCamera.getPlaybackManager().enterMultiplePreviewMode();
+
+            // Set the camera to playback mode
+            switchCameraMode(SettingsDefinitions.CameraMode.PLAYBACK);
 
             if (!product.getModel().equals(Model.UNKNOWN_AIRCRAFT)) {
                 if (VideoFeeder.getInstance().getVideoFeeds() != null
@@ -273,25 +263,11 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
                             }
 
                             mPlaybackState = playbackState;
-
-                            PlaybackActivity.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (mPlaybackState.getPlaybackMode().equals(SettingsDefinitions.PlaybackMode.MULTIPLE_MEDIA_FILE_PREVIEW)){
-                                        mSelectBtn.setText("Select");
-                                    }else if(mPlaybackState.getPlaybackMode().equals(SettingsDefinitions.PlaybackMode.MULTIPLE_FILES_EDIT)){
-                                        mSelectBtn.setText("Cancel");
-                                    }
-                                }
-                            });
                         }
-
                     }
                 });
-
             }
         }
-
     }
 
     public void showToast(final String msg) {
@@ -302,145 +278,9 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
         });
     }
 
-    private ProgressDialog mDownloadDialog;
-
-    private void createProgressDialog() {
-
-        mDownloadDialog = new ProgressDialog(PlaybackActivity.this);
-        mDownloadDialog.setTitle("Downloading File");
-        mDownloadDialog.setIcon(android.R.drawable.ic_dialog_info);
-        mDownloadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mDownloadDialog.setCanceledOnTouchOutside(false);
-        mDownloadDialog.setCancelable(false);
-    }
-
-    private void ShowDownloadProgressDialog() {
-        if (mDownloadDialog != null) {
-            mDownloadDialog.show();
-        }
-    }
-
-    private void HideDownloadProgressDialog() {
-        if (null != mDownloadDialog && mDownloadDialog.isShowing()) {
-            mDownloadDialog.dismiss();
-        }
-    }
-
-    private Handler handler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch (msg.what) {
-                case SHOWTOAST:
-                    showToast((String) msg.obj);
-                    break;
-                case SHOW_DOWNLOAD_PROGRESS_DIALOG:
-                    ShowDownloadProgressDialog();
-                    break;
-                case HIDE_DOWNLOAD_PROGRESS_DIALOG:
-                    HideDownloadProgressDialog();
-                    break;
-                default:
-                    break;
-            }
-            return false;
-        }
-    });
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.btn_single_btn: {
-                if (!isSinglePreview)
-                    mCamera.getPlaybackManager().enterSinglePreviewModeWithIndex(0);
-                break;
-            }
-            case R.id.btn_multi_pre_btn: {
-                if (isSinglePreview)
-                    mCamera.getPlaybackManager().enterMultiplePreviewMode();
-                break;
-            }
-            case R.id.btn_select_btn: {
-
-                if (mPlaybackState == null) {
-                    break;
-                }
-                if (mPlaybackState.equals(SettingsDefinitions.PlaybackMode.MULTIPLE_MEDIA_FILE_PREVIEW)) {
-                    mCamera.getPlaybackManager().enterMultipleEditMode();
-                } else if (mPlaybackState.equals(SettingsDefinitions.PlaybackMode.MULTIPLE_FILES_EDIT)) {
-                    mCamera.getPlaybackManager().exitMultipleEditMode();
-                }
-                break;
-            }
-            case R.id.btn_select_all_btn: {
-                if (mPlaybackState == null) {
-                    break;
-                }
-                if (mPlaybackState.isAllFilesInPageSelected()) {
-                    mCamera.getPlaybackManager().unselectAllFilesInPage();
-                } else {
-                    mCamera.getPlaybackManager().selectAllFilesInPage();
-                }
-                break;
-            }
-            case R.id.btn_delete_btn: {
-
-                if (mPlaybackState == null) {
-                    break;
-                }
-                if (mPlaybackState.equals(SettingsDefinitions.PlaybackMode.MULTIPLE_FILES_EDIT)) {
-                    mCamera.getPlaybackManager().deleteAllSelectedFiles();
-
-                } else if (mPlaybackState.equals(SettingsDefinitions.PlaybackMode.SINGLE_PHOTO_PREVIEW)) {
-                    mCamera.getPlaybackManager().deleteCurrentPreviewFile();
-                }
-                break;
-            }
-            case R.id.btn_download_btn: {
-
-                if (mPlaybackState == null) {
-                    break;
-                }
-
-                File destDir =
-                        new File(Environment.getExternalStorageDirectory().getPath() + "/ERLProject/");
-                if (mPlaybackState.getPlaybackMode().equals(SettingsDefinitions.PlaybackMode.MULTIPLE_FILES_EDIT)) {
-
-                    mCamera.getPlaybackManager().downloadSelectedFiles(destDir,
-                            new PlaybackManager.FileDownloadCallback() {
-                                @Override
-                                public void onStart() {
-                                    handler.sendMessage(handler.obtainMessage(SHOW_DOWNLOAD_PROGRESS_DIALOG, null));
-                                    if (mDownloadDialog != null) {
-                                        mDownloadDialog.setProgress(0);
-                                    }
-                                    handler.sendMessage(handler.obtainMessage(SHOWTOAST, "download OnStart"));
-                                }
-
-                                @Override
-                                public void onEnd() {
-                                    handler.sendMessage(handler.obtainMessage(HIDE_DOWNLOAD_PROGRESS_DIALOG, null));
-                                    handler.sendMessage(handler.obtainMessage(SHOWTOAST, "download OnEnd"));
-                                }
-
-                                @Override
-                                public void onError(Exception e) {
-                                    handler.sendMessage(handler.obtainMessage(HIDE_DOWNLOAD_PROGRESS_DIALOG, null));
-                                    handler.sendMessage(handler.obtainMessage(SHOWTOAST,
-                                            "download selected files OnError :" + e.toString()));
-                                }
-
-                                @Override
-                                public void onProgressUpdate(int i) {
-                                    if (mDownloadDialog != null) {
-                                        mDownloadDialog.setProgress(i);
-                                    }
-                                }
-                            });
-
-                }
-
-                break;
-            }
             case R.id.btn_previous_btn: {
                 if (isSinglePreview) {
                     mCamera.getPlaybackManager().proceedToPreviousSinglePreviewPage();
@@ -489,13 +329,6 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
                 previewBtnAction(7);
                 break;
             }
-            case R.id.btn_playback_btn: {
-                switchCameraMode(SettingsDefinitions.CameraMode.PLAYBACK);
-                break;
-            }
-            case R.id.btn_fpv_btn: {
-                switchCameraMode(SettingsDefinitions.CameraMode.SHOOT_PHOTO);
-            }
             default:
                 break;
         }
@@ -517,7 +350,6 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
                 @Override
                 public void onResult(DJIError djiError) {
                     if (djiError == null) {
-                        showToast("Switch Camera Mode Succeeded");
                     } else {
                         showToast(djiError.getDescription());
                     }

@@ -75,7 +75,10 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
 
     private WaypointAction photoAction = new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 2);
 
+    // Model waypoints
     private List<WayPoint> waypoints;
+    // DJI waypoints
+    private List<Waypoint> djiWaypoints = new ArrayList<>();
 
     private long intentID;
 
@@ -340,7 +343,6 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
      */
     private void configWayPointMission() {
         // Transform the current waypoints in DJI format and add them to a list
-        List<Waypoint> djiWaypoints = new ArrayList<>();
         for(WayPoint wp : waypoints){
             Waypoint mWaypoint = new Waypoint(wp.getLatitude(), wp.getLongitude(), (float)wp.getAltitude());
             mWaypoint.addAction(new WaypointAction(WaypointActionType.GIMBAL_PITCH, wp.getGimbalPitch()));
@@ -355,7 +357,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
                     .flightPathMode(WaypointMissionFlightPathMode.NORMAL);
 
             // Add the DJI Waypoints list to the mission builder
-            waypointMissionBuilder.waypointList(djiWaypoints);
+            waypointMissionBuilder.waypointList(djiWaypoints).waypointCount(djiWaypoints.size());
         } else {
             waypointMissionBuilder = new WaypointMission.Builder().finishedAction(mFinishedAction)
                     .headingMode(mHeadingMode)
@@ -364,7 +366,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
                     .flightPathMode(WaypointMissionFlightPathMode.NORMAL);
 
             // Add the DJI Waypoints list to the mission builder
-            waypointMissionBuilder.waypointList(djiWaypoints);
+            waypointMissionBuilder.waypointList(djiWaypoints).waypointCount(djiWaypoints.size());
         }
 
         DJIError error = getWaypointMissionOperator().loadMission(waypointMissionBuilder.build());

@@ -23,7 +23,7 @@ import dji.sdk.products.Aircraft;
 
 public class ConnectionActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final String TAG = MainActivity.class.getName();
+    private static final String TAG = ConnectionActivity.class.getName();
 
     private TextView mTextConnectionStatus;
     private TextView mTextProduct;

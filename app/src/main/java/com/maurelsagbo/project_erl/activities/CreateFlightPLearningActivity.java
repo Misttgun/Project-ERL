@@ -377,7 +377,7 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
             body.put("alt_end", 5);
             body.put("alt_start", 5);
             body.put("d_gimbal", gimbalObject);
-            body.put("d_rotation", waypoints.get(0).getRotation());
+            body.put("d_rotation", 0);
             body.put("coord1", coord1Object);
             body.put("v_increment", verticalInc);
             body.put("coord2", coord2Object);

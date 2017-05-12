@@ -363,7 +363,7 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
             // Working on the Gimbal JSONObject
             gimbalObject.put("yaw", 0);
             gimbalObject.put("roll", 0);
-            gimbalObject.put("pitch", gimbalPitch);
+            gimbalObject.put("pitch", -gimbalPitch);
 
             // Working on the Coord1 JSONObject
             coord1Object.put("lon", waypoints.get(0).getLongitude());
@@ -374,10 +374,10 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
             coord2Object.put("lat", waypoints.get(1).getLatitude());
 
             // Working on the Body JSONObject
-            body.put("alt_end", 5);
-            body.put("alt_start", 5);
+            body.put("alt_end", waypoints.get(1).getAltitude());
+            body.put("alt_start", waypoints.get(0).getAltitude());
             body.put("d_gimbal", gimbalObject);
-            body.put("d_rotation", 0);
+            body.put("d_rotation", waypoints.get(0).getRotation());
             body.put("coord1", coord1Object);
             body.put("v_increment", verticalInc);
             body.put("coord2", coord2Object);

@@ -58,7 +58,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
 
     protected static final String TAG = "FlightPDetailActivity";
 
-    private Button prepare, start, pictures, locate, stop;
+    private Button prepare, start, locate, stop;
 
     private GoogleMap gMap;
 
@@ -216,14 +216,12 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         prepare = (Button) findViewById(R.id.prepare_flight_p_btn);
         start = (Button) findViewById(R.id.start_flight_p_btn);
         stop = (Button) findViewById(R.id.stop_flight_p_btn);
-        pictures = (Button) findViewById(R.id.get_pictures_btn);
         locate = (Button) findViewById(R.id.locate_btn);
 
         // Set on click listener
         prepare.setOnClickListener(this);
         start.setOnClickListener(this);
         stop.setOnClickListener(this);
-        pictures.setOnClickListener(this);
         locate.setOnClickListener(this);
     }
 
@@ -346,6 +344,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         for(WayPoint wp : waypoints){
             Waypoint mWaypoint = new Waypoint(wp.getLatitude(), wp.getLongitude(), (float)wp.getAltitude());
             mWaypoint.addAction(new WaypointAction(WaypointActionType.GIMBAL_PITCH, wp.getGimbalPitch()));
+            mWaypoint.addAction(new WaypointAction(WaypointActionType.ROTATE_AIRCRAFT, (int)wp.getRotation()));
             mWaypoint.addAction(photoAction);
             djiWaypoints.add(mWaypoint);
         }
@@ -358,6 +357,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
 
             // Add the DJI Waypoints list to the mission builder
             waypointMissionBuilder.waypointList(djiWaypoints).waypointCount(djiWaypoints.size());
+            waypointMissionBuilder.repeatTimes(1);
         } else {
             waypointMissionBuilder = new WaypointMission.Builder().finishedAction(mFinishedAction)
                     .headingMode(mHeadingMode)
@@ -367,14 +367,10 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
 
             // Add the DJI Waypoints list to the mission builder
             waypointMissionBuilder.waypointList(djiWaypoints).waypointCount(djiWaypoints.size());
+            waypointMissionBuilder.repeatTimes(1);
         }
 
-        DJIError error = getWaypointMissionOperator().loadMission(waypointMissionBuilder.build());
-        if (error == null) {
-            setResultToToast("loadWaypoint succeeded");
-        } else {
-            setResultToToast("loadWaypoint failed " + error.getDescription());
-        }
+        getWaypointMissionOperator().loadMission(waypointMissionBuilder.build());
     }
 
     /**

@@ -58,7 +58,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
 
     protected static final String TAG = "FlightPDetailActivity";
 
-    private Button prepare, start, locate, stop;
+    private Button start, locate, stop, prepare;
 
     private GoogleMap gMap;
 
@@ -87,8 +87,9 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flight_p_detail);
 
-        // Initialization of UI
+        // Initialization and refresh UI
         initUI();
+        refreshUI();
 
         // Get the map fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_details);
@@ -127,6 +128,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
     protected void onResume(){
         super.onResume();
         initFlightController();
+        refreshUI();
     }
 
     @Override
@@ -165,12 +167,12 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
                 cameraUpdate();
                 break;
             }
-            case R.id.prepare_flight_p_btn: {
-                uploadWayPointMission();
-                break;
-            }
             case R.id.start_flight_p_btn:{
                 startWaypointMission();
+                break;
+            }
+            case R.id.prepare_btn: {
+                uploadWayPointMission();
                 break;
             }
             case R.id.stop_flight_p_btn:{
@@ -213,16 +215,16 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
      */
     private void initUI(){
         // Get buttons
-        prepare = (Button) findViewById(R.id.prepare_flight_p_btn);
         start = (Button) findViewById(R.id.start_flight_p_btn);
         stop = (Button) findViewById(R.id.stop_flight_p_btn);
         locate = (Button) findViewById(R.id.locate_btn);
+        prepare = (Button) findViewById(R.id.prepare_btn);
 
         // Set on click listener
-        prepare.setOnClickListener(this);
         start.setOnClickListener(this);
         stop.setOnClickListener(this);
         locate.setOnClickListener(this);
+        prepare.setOnClickListener(this);
     }
 
     /**
@@ -233,7 +235,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         FlightPDetailActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(FlightPDetailActivity.this, string, Toast.LENGTH_LONG).show();
+                Toast.makeText(FlightPDetailActivity.this, string, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -384,9 +386,9 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
             @Override
             public void onResult(DJIError error) {
                 if (error == null) {
-                    setResultToToast("Mission upload successfully!");
+                    setResultToToast("Mission chargé avec succès !");
                 } else {
-                    setResultToToast("Mission upload failed, error: " + error.getDescription() + " retrying...");
+                    setResultToToast("Echec de chargement de mission : " + error.getDescription() + " 2e essai...");
                     getWaypointMissionOperator().retryUploadMission(null);
                 }
             }
@@ -401,7 +403,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         getWaypointMissionOperator().startMission(new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(DJIError error) {
-                setResultToToast("Mission Start: " + (error == null ? "Successfully" : error.getDescription()));
+                setResultToToast("Début mission : " + (error == null ? "Succès" : error.getDescription()));
             }
         });
     }
@@ -413,7 +415,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
         getWaypointMissionOperator().stopMission(new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(DJIError error) {
-                setResultToToast("Mission Stop: " + (error == null ? "Successfully" : error.getDescription()));
+                setResultToToast("Arrêt mission : " + (error == null ? "Succès" : error.getDescription()));
             }
         });
     }
@@ -467,7 +469,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
             prepare.setEnabled(false);
 
             // Show message on screen
-            setResultToToast("The aircraft is not connected.");
+            setResultToToast("Le drone n'est pas connecté !");
             Log.v(TAG, "Connection to aircraft: False");
         }
     }

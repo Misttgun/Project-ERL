@@ -109,7 +109,7 @@ public class CreateFlightPActivity extends AppCompatActivity implements View.OnC
         if(isAdd){
             markWaypoint(latLng);
         } else {
-            setResultToToast("Cannot add waypoint, click on ADD button.");
+            setResultToToast("Appuyez sur Add pour ajouter des points de passage !");
         }
     }
 
@@ -184,7 +184,7 @@ public class CreateFlightPActivity extends AppCompatActivity implements View.OnC
                     @Override
                     public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
                         FlightPlan flightPlan;
-                        if(!waypoints.isEmpty()){
+                        if(!waypoints.isEmpty() && waypoints.size() >= 2){
                             flightPlan = new FlightPlan(waypoints, input.toString());
                             long id = FlightPlanORM.postFlightPlan(context, flightPlan);
                             for(WayPoint wp : waypoints){
@@ -197,7 +197,7 @@ public class CreateFlightPActivity extends AppCompatActivity implements View.OnC
                             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                             startActivity(intent);
                         } else {
-                            Toast.makeText(CreateFlightPActivity.this, "Add waypoint first", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(CreateFlightPActivity.this, "Ajoutez au moins 2 points de passage.", Toast.LENGTH_SHORT).show();
                         }
 
                     }

@@ -1,5 +1,6 @@
 package com.maurelsagbo.project_erl.activities;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,7 +14,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,7 +32,6 @@ import com.maurelsagbo.project_erl.mapper.WayPointORM;
 import com.maurelsagbo.project_erl.models.FlightPlan;
 import com.maurelsagbo.project_erl.models.WayPoint;
 import com.maurelsagbo.project_erl.utilities.MySingleton;
-import com.maurelsagbo.project_erl.utilities.StringRequestCallback;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -50,7 +49,7 @@ public class FlightPActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private FlightPAdapter adapter;
     private TextView emptyText;
-    private RelativeLayout loadingView;
+    private ProgressDialog progressDialog;
 
     // Check if we can exit the application
     private Boolean exit = false;
@@ -76,8 +75,10 @@ public class FlightPActivity extends AppCompatActivity {
         emptyText = (TextView) findViewById(R.id.empty_recycler);
 
         // Get the progress bar
-        loadingView = (RelativeLayout) findViewById(R.id.loading_view);
-        loadingView.setVisibility(View.GONE);
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Récupération des plans de vol....");
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
 
         // Get the recycler view and set fixed size to true
         recyclerView = (RecyclerView) findViewById(R.id.recycler_fp_location);
@@ -145,7 +146,7 @@ public class FlightPActivity extends AppCompatActivity {
         if(exit){
             finish();
         } else {
-            Toast.makeText(this, "Press Back again to Exit.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Appuyez une nouvelle fois pour quitter l'application.", Toast.LENGTH_SHORT).show();
             exit = true;
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -170,12 +171,8 @@ public class FlightPActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.get_fp:
-                Log.i(TAG, "Affichage de la progress bar");
-                loadingView.setVisibility(View.VISIBLE);
-                emptyText.setText("Récupération des plan de vol en cours...");
-                emptyText.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 // Get the fight plans from server and then update the map
-                populateSQLite(this);
+                downloadAllFlightPlans(this);
 
                 //updateFlightPlanList();
                 return true;
@@ -236,60 +233,54 @@ public class FlightPActivity extends AppCompatActivity {
 
     /**
      * Method which download all the Flight Plans and Waypoints associated from the server
-     * @param callback
+     * @param context
      */
-    private void downloadAllFlightPlans(final StringRequestCallback callback){
+
+    private void downloadAllFlightPlans(final Context context){
         StringRequest requestFP = new StringRequest(Request.Method.GET,"http://vps361908.ovh.net/dev/elittoral/api/flightplans/dump",
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        callback.onSuccess(response);
+                        try {
+
+                            // Transform the string response to JSON and get the JSON Array with key "flightplans"
+                            JSONObject flightPlanJson = new JSONObject(response);
+                            JSONArray fpArray = flightPlanJson.getJSONArray("flightplans");
+
+                            for(int i = 0; i < fpArray.length(); i++){
+                                // Get the first flight plan JSON Object and get the JSON Array with key "waypoints"
+                                JSONObject fpObject = fpArray.getJSONObject(i);
+                                postFlightPlanToBDD(fpObject.toString(), context);
+                            }
+
+                            Log.i(TAG, "Dissimulation de la progress bar");
+                            progressDialog.dismiss();
+                            Log.i(TAG, "Updating flightplan list from response");
+                            updateFlightPlanList();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Log.e(TAG, error.toString());
+                progressDialog.dismiss();
+                showToast("Vous n'avez pas accès à internet. Veuillez vous connecter pour récupérer les plans de vol...");
             }
         });
 
-        // Add a timeout of 1 minute for the request
+        // Add a timeout of 15 seconds for the request
         requestFP.setRetryPolicy(new DefaultRetryPolicy(
-                60000,
+                15000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         MySingleton.getInstance(this).getRequestQueue().add(requestFP);
-    }
 
-    /**
-     * Method which add the Flight Plans and Waypoint to the SQLite database after the download for the server is successfull
-     * @param context
-     */
-    private void populateSQLite(final Context context){
-        downloadAllFlightPlans(new StringRequestCallback() {
-            @Override
-            public void onSuccess(String response) {
-                try {
-                    // Transform the string response to JSON and get the JSON Array with key "flightplans"
-                    JSONObject flightPlanJson = new JSONObject(response);
-                    JSONArray fpArray = flightPlanJson.getJSONArray("flightplans");
+        Log.i(TAG, "Affichage de la progress bar");
+        progressDialog.show();
 
-                    for(int i = 0; i < fpArray.length(); i++){
-                        // Get the first flight plan JSON Object and get the JSON Array with key "waypoints"
-                        JSONObject fpObject = fpArray.getJSONObject(i);
-                        postFlightPlanToBDD(fpObject.toString(), context);
-                    }
-
-                    Log.i(TAG, "Dissimulation de la progress bar");
-                    loadingView.setVisibility(View.GONE);
-                    Log.i(TAG, "Updating flightplan list from response");
-                    updateFlightPlanList();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
     }
 
     /**
@@ -324,5 +315,13 @@ public class FlightPActivity extends AppCompatActivity {
                 WayPointORM.postWaypoint(context,wayPoint,id);
             }
         }
+    }
+
+    public void showToast(final String msg) {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText(FlightPActivity.this, msg, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 }

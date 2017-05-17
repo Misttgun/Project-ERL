@@ -39,7 +39,9 @@
                     android:layout_alignParentBottom="true"
                     android:layout_height="match_parent">
 
-                    <include layout="@layout/flight_plan_location_recycler"/>
+                    <include
+                        layout="@layout/flight_plan_location_recycler"
+                        android:visibility="visible" />
                 </FrameLayout>
             </LinearLayout>
 

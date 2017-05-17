@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.maurelsagbo.project_erl.R;
 import com.maurelsagbo.project_erl.application.ERLApplication;
@@ -107,14 +106,6 @@ public class ConnectionActivity extends AppCompatActivity implements View.OnClic
         }
     };
 
-    public void showToast(final String msg) {
-        runOnUiThread(new Runnable() {
-            public void run() {
-                Toast.makeText(ConnectionActivity.this, msg, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -141,7 +132,7 @@ public class ConnectionActivity extends AppCompatActivity implements View.OnClic
            // mBtnOpen.setEnabled(true);
 
             String str = mProduct instanceof Aircraft ? "DJIAircraft" : "DJIHandHeld";
-            mTextConnectionStatus.setText("Status: " + str + " connected");
+            mTextConnectionStatus.setText("Status: " + str + " connecté");
 
             if (null != mProduct.getModel()) {
                 mTextProduct.setText("" + mProduct.getModel().getDisplayName());

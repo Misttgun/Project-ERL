@@ -67,15 +67,10 @@
         <service android:name="dji.sdk.sdkmanager.DJIGlobalService" />
         <!-- DJI SDK -->
 
-        // Asus ROG
+        // Asus ROG et Mac Jean Rostand
          <meta-data
          android:name="com.google.android.geo.API_KEY"
          android:value="AIzaSyAolhVR4FP1X98hO6Yb9zN8xANAwO19ji4" />
-
-        // Mac Jean Rostand
-        <!--<meta-data-->
-            <!--android:name="com.google.android.geo.API_KEY"-->
-            <!--android:value="AIzaSyDiKLeF1IqTncCu9BAPdrepg5ThQoj6Jlg" />-->
 
         // Gros ROG
         <!-- <meta-data -->

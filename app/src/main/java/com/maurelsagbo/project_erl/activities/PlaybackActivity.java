@@ -178,13 +178,20 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
         BaseProduct product = ERLApplication.getProductInstance();
 
         if (product == null || !product.isConnected()) {
-            showToast("Aircraft is disconnected");
+            showToast("Le drone est déconnecté");
+            mPreviewModeBtn.setEnabled(false);
+            mPreviousBtn.setEnabled(false);
+            mNextBtn.setEnabled(false);
         } else {
             if (null != mVideoSurface) {
                 mVideoSurface.setSurfaceTextureListener(this);
             }
 
             mCamera = product.getCamera();
+
+            mPreviewModeBtn.setEnabled(true);
+            mPreviousBtn.setEnabled(true);
+            mNextBtn.setEnabled(true);
 
             // Set the preview mode to multiple
             mCamera.getPlaybackManager().enterMultiplePreviewMode();

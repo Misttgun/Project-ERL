@@ -102,7 +102,7 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
         return false;
     }
 
-    protected  void onProductChange(){
+    protected void onProductChange(){
         initPreviewer();
     }
 
@@ -214,7 +214,7 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
     private void initPreviewer() {
         BaseProduct product = ERLApplication.getProductInstance();
         if (product == null || !product.isConnected()) {
-            showToast("Aircraft is disconnected");
+            showToast("Le Drone est déconnecté !");
         } else {
             if (null != mVideoSurface) {
                 mVideoSurface.setSurfaceTextureListener(this);
@@ -243,6 +243,8 @@ public class CreateFlightPLearningActivity extends AppCompatActivity implements 
             if (product instanceof Aircraft) {
                 mFlightController = ((Aircraft) product).getFlightController();
             }
+        } else {
+            showToast("Veuillez connecter le drone !");
         }
         if (mFlightController != null) {
             WayPoint wayPoint = new WayPoint();

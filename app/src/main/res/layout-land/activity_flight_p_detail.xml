@@ -45,15 +45,16 @@
                 android:textSize="14sp" />
 
             <Button
-                android:id="@+id/prepare_flight_p_btn"
+                android:id="@+id/prepare_btn"
                 android:layout_width="100dp"
                 android:layout_height="35dp"
-                android:layout_alignStart="@+id/locate_btn"
-                android:layout_below="@+id/locate_btn"
-                android:layout_marginTop="15dp"
+                android:layout_marginRight="15dp"
                 android:background="@android:color/holo_orange_light"
                 android:text="Prepare"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:layout_alignBaseline="@+id/stop_flight_p_btn"
+                android:layout_alignBottom="@+id/stop_flight_p_btn"
+                android:layout_alignStart="@+id/locate_btn" />
 
             <Button
                 android:id="@+id/start_flight_p_btn"

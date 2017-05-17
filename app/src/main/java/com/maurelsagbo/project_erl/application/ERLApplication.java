@@ -95,14 +95,6 @@ public class ERLApplication extends Application {
         public void onRegister(DJIError error) {
             if (error == DJISDKError.REGISTRATION_SUCCESS) {
                 DJISDKManager.getInstance().startConnectionToProduct();
-                Handler handler = new Handler(Looper.getMainLooper());
-                handler.post(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        Toast.makeText(getApplicationContext(), "Register Success", Toast.LENGTH_LONG).show();
-                    }
-                });
                 Log.d(TAG, "Register success");
             } else {
                 Handler handler = new Handler(Looper.getMainLooper());
@@ -110,7 +102,7 @@ public class ERLApplication extends Application {
 
                     @Override
                     public void run() {
-                        Toast.makeText(getApplicationContext(), "Register sdk fails, check network is available", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Echec enregistrement, veuillez vous connecter à internet.", Toast.LENGTH_LONG).show();
                     }
                 });
 

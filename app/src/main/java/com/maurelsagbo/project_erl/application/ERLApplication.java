@@ -1,10 +1,10 @@
 package com.maurelsagbo.project_erl.application;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -18,7 +18,7 @@ import dji.sdk.camera.Camera;
 import dji.sdk.products.Aircraft;
 import dji.sdk.sdkmanager.DJISDKManager;
 
-public class ERLApplication extends Application {
+public class ERLApplication extends MultiDexApplication {
 
     private static final String TAG = ERLApplication.class.getName();
 

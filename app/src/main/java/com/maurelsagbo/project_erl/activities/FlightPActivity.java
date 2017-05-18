@@ -204,33 +204,6 @@ public class FlightPActivity extends AppCompatActivity {
         }
     }
 
-//    private void downloadFPById(final Context context, final long id){
-//        JsonObjectRequest requestWP = new JsonObjectRequest(Request.Method.GET, "http://vps361908.ovh.net/dev/elittoral/api/flightplans/" + id, null,
-//                    new Response.Listener<JSONObject>() {
-//                        @Override
-//                        public void onResponse(JSONObject response) {
-//                            try {
-//                                String wayPointJson = response.getJSONArray("waypoints").toString();
-//                                List<WayPoint> wayPoints = Arrays.asList(gson.fromJson(wayPointJson, WayPoint[].class));
-//                                for(WayPoint wp : wayPoints){
-//                                    WayPointORM.postWaypoint(context, wp, id);
-//                                }
-//                            } catch (JSONException e){
-//                                Log.e(TAG, "Failed to parse JSON to Waypoint list");
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }, new Response.ErrorListener() {
-//                @Override
-//                public void onErrorResponse(VolleyError error) {
-//
-//                }
-//            });
-//
-//        MySingleton.getInstance(this).getRequestQueue().add(requestWP);
-//
-//    }
-
     /**
      * Method which download all the Flight Plans and Waypoints associated from the server
      * @param context

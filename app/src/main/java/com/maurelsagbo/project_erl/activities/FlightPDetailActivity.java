@@ -327,7 +327,7 @@ public class FlightPDetailActivity extends AppCompatActivity implements OnMapRea
 
         @Override
         public void onExecutionFinish(@Nullable final DJIError error) {
-            setResultToToast("Execution finished: " + (error == null ? "Success!" : error.getDescription()));
+            setResultToToast("Plan de vol terminé: " + (error == null ? "Succès!" : error.getDescription()));
         }
     };
 

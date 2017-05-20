@@ -84,7 +84,7 @@
         <activity
             android:name=".activities.FlightPDetailActivity"
             android:configChanges="orientation|keyboardHidden"
-            android:label="Détail plan de vol"
+            android:label="Détails du plan de vol"
             android:parentActivityName=".activities.FlightPActivity"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme">

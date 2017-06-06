@@ -195,6 +195,7 @@ public class PlaybackActivity extends AppCompatActivity implements TextureView.S
 
             // Set the preview mode to multiple
             mCamera.getPlaybackManager().enterMultiplePreviewMode();
+            mPreviewModeBtn.setChecked(false);
 
             // Set the camera to playback mode
             switchCameraMode(SettingsDefinitions.CameraMode.PLAYBACK);

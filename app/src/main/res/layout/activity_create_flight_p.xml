@@ -58,17 +58,6 @@
                             android:textStyle="normal|bold" />
 
                         <Button
-                            android:id="@+id/btn_locate_btn"
-                            android:layout_width="match_parent"
-                            android:layout_height="40dp"
-                            android:layout_marginLeft="8dp"
-                            android:layout_weight="1"
-                            android:background="@android:color/holo_orange_light"
-                            android:text="Locate"
-                            android:textColor="@android:color/white"
-                            android:textStyle="normal|bold" />
-
-                        <Button
                             android:id="@+id/save_btn"
                             android:layout_width="match_parent"
                             android:layout_height="40dp"

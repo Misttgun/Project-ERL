@@ -12,12 +12,12 @@
             android:orientation="vertical">
 
                 <android.support.v7.widget.Toolbar
+                    android:id="@+id/create_toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="?attr/colorPrimary"
-                    android:theme="?attr/actionBarTheme"
                     android:minHeight="?attr/actionBarSize"
-                    android:id="@+id/create_toolbar" />
+                    android:theme="?attr/actionBarTheme" />
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -25,9 +25,9 @@
 
                         <fragment
                             android:id="@+id/map"
+                            class="com.google.android.gms.maps.SupportMapFragment"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            class="com.google.android.gms.maps.SupportMapFragment" />
+                            android:layout_height="match_parent" />
 
                         <Button
                             android:id="@+id/add_btn"
@@ -56,23 +56,11 @@
                             android:textStyle="normal|bold" />
 
                         <Button
-                            android:id="@+id/btn_locate_btn"
-                            android:layout_width="80dp"
-                            android:layout_height="40dp"
-                            android:layout_alignParentRight="true"
-                            android:layout_below="@+id/clear_btn"
-                            android:layout_margin="10dp"
-                            android:background="@android:color/holo_orange_light"
-                            android:text="Locate"
-                            android:textColor="@android:color/white"
-                            android:textStyle="normal|bold" />
-
-                        <Button
                             android:id="@+id/save_btn"
                             android:layout_width="80dp"
                             android:layout_height="40dp"
                             android:layout_alignParentRight="true"
-                            android:layout_below="@+id/btn_locate_btn"
+                            android:layout_below="@+id/clear_btn"
                             android:layout_margin="10dp"
                             android:background="@android:color/holo_orange_light"
                             android:text="Save"
